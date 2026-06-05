@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noughts &amp; Crosses — ARCADE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="../index.html" class="back-btn">← BACK</a>
+      <div class="game-title-bar">
+        <h1 style="color: var(--accent-blue); text-shadow: var(--glow-blue);">NOUGHTS &amp; CROSSES</h1>
+        <p class="subtitle">x · o · win</p>
+      </div>
+      <div class="mode-selector">
+        <button class="mode-btn active" id="btn-vs-cpu" onclick="setMode('cpu')">VS CPU</button>
+        <button class="mode-btn" id="btn-vs-p2" onclick="setMode('2p')">2 PLAYER</button>
+      </div>
+    </div>
+
+    <div class="scoreboard ttt-container" style="flex: 0; padding: 0;">
+      <div class="scoreboard">
+        <div class="score-item score-p1">
+          <span class="score-label">PLAYER 1 (✕)</span>
+          <span class="score-value" id="score-p1">0</span>
+        </div>
+        <div class="score-item score-draw">
+          <span class="score-label">DRAWS</span>
+          <span class="score-value" id="score-draw">0</span>
+        </div>
+        <div class="score-item score-p2">
+          <span class="score-label" id="p2-label">CPU (○)</span>
+          <span class="score-value" id="score-p2">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background: var(--accent-red);"></span>
+      <span id="status-text">Player 1's turn — play ✕</span>
+    </div>
+
+    <div class="ttt-container">
+      <div class="player-indicators">
+        <div class="player-ind p1-ind active-player" id="p1-ind">
+          <span class="player-ind-mark" style="color:var(--accent-red)">✕</span>
+          <span id="p1-ind-label">PLAYER 1</span>
+        </div>
+        <div class="player-ind p2-ind" id="p2-ind">
+          <span class="player-ind-mark" style="color:var(--accent-blue)">○</span>
+          <span id="p2-ind-label">CPU</span>
+        </div>
+      </div>
+
+      <div class="ttt-board" id="ttt-board"></div>
+
+      <button class="reset-btn" onclick="resetGame()">[ NEW GAME ]</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // NOUGHTS & CROSSES — Game Logic
+    // ============================================================
+    let board = Array(9).fill(null); // null, 'X', 'O'
+    let currentPlayer = 'X'; // X = Player 1, O = Player 2 / CPU
+    let gameOver = false;
+    let mode = 'cpu';
+    let scores = { p1: 0, p2: 0, draw: 0 };
+    let cpuThinking = false;
+
+    const WIN_LINES = [
+      [0,1,2],[3,4,5],[6,7,8], // rows
+      [0,3,6],[1,4,7],[2,5,8], // cols
+      [0,4,8],[2,4,6]           // diagonals
+    ];
+
+    function init() {
+      board = Array(9).fill(null);
+      currentPlayer = 'X';
+      gameOver = false;
+      cpuThinking = false;
+      renderBoard();
+      updateStatus();
+      updatePlayerIndicators();
+    }
+
+    function renderBoard() {
+      const boardEl = document.getElementById('ttt-board');
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ttt-cell';
+        if (board[i]) cell.classList.add('taken', board[i] === 'X' ? 'x-cell' : 'o-cell');
+
+        const mark = document.createElement('span');
+        mark.className = 'mark' + (board[i] ? ' placed' : '');
+        mark.textContent = board[i] === 'X' ? '✕' : board[i] === 'O' ? '○' : '';
+        cell.appendChild(mark);
+
+        cell.dataset.index = i;
+        cell.addEventListener('click', () => handleClick(i));
+        boardEl.appendChild(cell);
+      }
+    }
+
+    function handleClick(idx) {
+      if (gameOver || cpuThinking) return;
+      if (mode === 'cpu' && currentPlayer === 'O') return;
+      if (board[idx]) return;
+      playMove(idx);
+    }
+
+    function playMove(idx) {
+      board[idx] = currentPlayer;
+      renderBoard();
+
+      const win = checkWin();
+      if (win) {
+        highlightWin(win);
+        gameOver = true;
+        const winner = currentPlayer === 'X' ? 'PLAYER 1' : (mode === 'cpu' ? 'CPU' : 'PLAYER 2');
+        updateStatus(`${winner} WINS! 🎉`, currentPlayer);
+        if (currentPlayer === 'X') { scores.p1++; document.getElementById('score-p1').textContent = scores.p1; }
+        else { scores.p2++; document.getElementById('score-p2').textContent = scores.p2; }
+        return;
+      }
+
+      if (board.every(c => c !== null)) {
+        gameOver = true;
+        updateStatus("DRAW! Great game.");
+        scores.draw++;
+        document.getElementById('score-draw').textContent = scores.draw;
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      updateStatus();
+      updatePlayerIndicators();
+
+      if (mode === 'cpu' && currentPlayer === 'O' && !gameOver) {
+        cpuThinking = true;
+        setTimeout(() => { cpuMove(); cpuThinking = false; }, 420);
+      }
+    }
+
+    function checkWin() {
+      for (const line of WIN_LINES) {
+        const [a,b,c] = line;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) return line;
+      }
+      return null;
+    }
+
+    function highlightWin(line) {
+      const cells = document.querySelectorAll('.ttt-cell');
+      line.forEach(i => cells[i].classList.add('win-cell'));
+    }
+
+    function updateStatus(msg, player) {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (msg) {
+        text.textContent = msg;
+        dot.style.background = 'var(--accent-green)';
+        dot.style.animation = 'none';
+        return;
+      }
+      const name = currentPlayer === 'X' ? 'PLAYER 1' : (mode === 'cpu' ? 'CPU' : 'PLAYER 2');
+      const mark = currentPlayer === 'X' ? '✕' : '○';
+      text.textContent = `${name}'s turn — play ${mark}`;
+      dot.style.background = currentPlayer === 'X' ? 'var(--accent-red)' : 'var(--accent-blue)';
+      dot.style.animation = 'blink 1s infinite';
+    }
+
+    function updatePlayerIndicators() {
+      document.getElementById('p1-ind').classList.toggle('active-player', currentPlayer === 'X');
+      document.getElementById('p2-ind').classList.toggle('active-player', currentPlayer === 'O');
+    }
+
+    // ============================================================
+    // CPU AI — Minimax (perfect play)
+    // ============================================================
+    function cpuMove() {
+      let bestScore = -Infinity, bestIdx = -1;
+      for (let i = 0; i < 9; i++) {
+        if (board[i]) continue;
+        board[i] = 'O';
+        const s = minimax(board, false, -Infinity, Infinity);
+        board[i] = null;
+        if (s > bestScore) { bestScore = s; bestIdx = i; }
+      }
+      playMove(bestIdx);
+    }
+
+    function minimax(b, isMaximizing, alpha, beta) {
+      const win = checkWinBoard(b);
+      if (win === 'O') return 10;
+      if (win === 'X') return -10;
+      if (b.every(c => c !== null)) return 0;
+
+      if (isMaximizing) {
+        let best = -Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (b[i]) continue;
+          b[i] = 'O';
+          best = Math.max(best, minimax(b, false, alpha, beta));
+          b[i] = null;
+          alpha = Math.max(alpha, best);
+          if (beta <= alpha) break;
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (b[i]) continue;
+          b[i] = 'X';
+          best = Math.min(best, minimax(b, true, alpha, beta));
+          b[i] = null;
+          beta = Math.min(beta, best);
+          if (beta <= alpha) break;
+        }
+        return best;
+      }
+    }
+
+    function checkWinBoard(b) {
+      for (const [a,bI,c] of WIN_LINES) {
+        if (b[a] && b[a] === b[bI] && b[a] === b[c]) return b[a];
+      }
+      return null;
+    }
+
+    // ============================================================
+    // UI Controls
+    // ============================================================
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btn-vs-cpu').classList.toggle('active', m === 'cpu');
+      document.getElementById('btn-vs-p2').classList.toggle('active', m === '2p');
+      document.getElementById('p2-label').textContent = m === 'cpu' ? 'CPU (○)' : 'PLAYER 2 (○)';
+      document.getElementById('p2-ind-label').textContent = m === 'cpu' ? 'CPU' : 'PLAYER 2';
+      scores = { p1: 0, p2: 0, draw: 0 };
+      document.getElementById('score-p1').textContent = 0;
+      document.getElementById('score-p2').textContent = 0;
+      document.getElementById('score-draw').textContent = 0;
+      resetGame();
+    }
+
+    function resetGame() { init(); }
+
+    init();
+  </script>
+</body>
+</html>

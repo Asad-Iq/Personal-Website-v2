@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asad Iqbal</title>
+  <link rel="stylesheet" href="main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+  emailjs.init("444iXREWTMyGI15lX");
+  </script>
+</head>
+<body>
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<header class="navbar" id="navbar">
+  <div class="nav-logo">
+    <span class="nav-name">Asad Iqbal</span>
+    <span class="nav-dot">.</span>
+  </div>
+
+  <nav class="nav-links">
+    <a href="#home">home</a>
+    <a href="#about">about</a>
+    <a href="#experience">experience</a>
+    <a href="#photography">photography</a>
+    <a href="#writing">writing</a>
+    <a href="#games">games</a>
+    <a href="#contact">contact</a>
+  </nav>
+
+  <div class="nav-socials">
+    <a href="https://github.com/asad-iq" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+    <a href="https://linkedin.com/in/asad-i-79b5a4239/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+    <a href="https://instagram.com/asad.ai_/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+  </div>
+
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="#home"        onclick="closeMobileNav()">home</a>
+  <a href="#about"       onclick="closeMobileNav()">about</a>
+  <a href="#experience"  onclick="closeMobileNav()">experience</a>
+  <a href="#photography" onclick="closeMobileNav()">photography</a>
+  <a href="#writing"     onclick="closeMobileNav()">writing</a>
+  <a href="#games"       onclick="closeMobileNav()">games</a>
+  <a href="#contact"     onclick="closeMobileNav()">contact</a>
+</div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section id="home" class="hero-section">
+  <div class="hero-bg">
+    <div class="hero-photo-frame">
+      <!-- To add your photo: uncomment the line below and set your image src.
+           It will sit inside this box — the particle canvas runs behind it.
+           <img src="your-photo.jpg" alt="Asad Iqbal" class="hero-photo"> -->
+      <canvas id="particle-canvas"></canvas>
+      <img id="source-image" src="out_17766365224651.png" crossorigin="anonymous" hidden>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">// hello, world</p>
+    <h1 class="hero-title">
+      <span id="typing-text"></span><span class="cursor">_</span>
+    </h1>
+    <p class="hero-sub">Physics 2nd year student · Gunner · Gallivanter · Petrolhead</p>
+    <div class="hero-actions">
+      <a href="#about" class="btn-primary">explore</a>
+      <a href="#contact" class="btn-ghost">get in touch</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══════════════ ABOUT ═══════════════ -->
+<section id="about" class="section">
+  <div class="section-label">01 / about</div>
+  <div class="about-grid">
+    <div class="about-text">
+      <h2 class="section-title">A bit about me</h2>
+      <p class="lead">
+        I'm Asad — a Physics student with a passion for understanding how things work, whether that's the laws of the universe or the engineering of mechanical systems.
+      </p>
+      <p>There's always something on the workbench. Some weeks it's a coding project, some weeks it's a car on the driveway — usually because I convinced myself it would be a quick job. That's pretty much been the constant.
+When I'm not tinkering, I'm usually chasing stories across borders, lost in a topic for longer than i intended, buried in a good book or at the piano. And on weekends, watching Arsenal systematically dismantle my will to live.
+The common thread through all of it is a love of learning, building, and exploring — whether that's a new place, a new idea, or a new challenge.
+        
+      </p>
+      <p>
+        Currently based in the Leeds, open to anything that involves solving hard problems with creative solutions!
+      </p>
+      <div class="about-tags">
+        <span>Coding</span><span>Creating</span><span>Composing</span>
+        <span>Gallivanting</span><span>Tinkering</span>
+      </div>
+    </div>
+    <div class="about-image-col">
+      <div class="about-img-frame">
+        <!-- Replace src with your own photo -->
+        <div class="about-img-placeholder">
+          <i class="fas fa-user"></i>
+          <p><img src="Snapchat-2028678647.jpg" alt="description" class="photo-img"></p>
+        </div>
+      </div>
+      <div class="about-stats">
+        <div class="stat">
+          <span class="stat-num">3+</span>
+          <span class="stat-label">years coding</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">BSc</span>
+          <span class="stat-label">Physics</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">∞</span>
+          <span class="stat-label">curiosity</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ EXPERIENCE ═══════════════ -->
+<section id="experience" class="section section-dark">
+  <div class="section-label">02 / experience</div>
+  <h2 class="section-title">Where I've been</h2>
+
+  <div class="exp-layout">
+    <div class="exp-sidebar" id="exp-sidebar">
+      <button class="exp-btn active" data-target="edu1">Physics BSc</button>
+      <button class="exp-btn" data-target="edu2">Work Placement - China</button>
+      <button class="exp-btn" data-target="edu3">Academic Presentation</button>
+      <button class="exp-btn" data-target="work1">Research Intern</button>
+    </div>
+
+    <div class="exp-content" id="exp-content">
+      <div class="exp-panel active" id="panel-edu1">
+        <div class="exp-header">
+          <h3>Physics BSc</h3>
+          <span class="exp-date">2025 — 2028</span>
+        </div>
+        <p class="exp-company">University of Leeds</p>
+        <ul>
+          <li>Developing a strong foundation in core physics concepts including mechanics, electromagnetism, quantum physics, and mathematical methods</li>
+          <li>Gaining hands-on experience with experimental physics, including data collection, uncertainty analysis, and scientific reporting.</li>
+          <li>Working independently and collaboratively on structured lab work and assessed projects under time constraints</li>
+          <li>Building computational skills through programming in Python for graphing, functions, and data analysis</li>
+          <li>Currently on track to achieve a <em>first-class</em> degree classification.</li>
+        </ul>
+      </div>
+
+      <div class="exp-panel" id="panel-edu2">
+        <div class="exp-header">
+          <h3>TEFL Training - China</h3>
+          <span class="exp-date">Jun 2026 - Sep 2026</span>
+        </div>
+        <p class="exp-company">Gotoco</p>
+        <ul>
+          <li>Selected for a TEFL training programme with Gotoco in China, gaining hands-on experience in teaching English as a foreign language</li>
+          <li>Completed structured teacher training focused on lesson planning, classroom management, and communicative language teaching methods</li>
+          <li>Delivered English lessons to non-native speakers, developing adaptability and confidence in real classroom environments</li>
+          <li>Engaged in cross-cultural exchange, improving communication skills while working within Chinese educational settings.</li>
+          <li>Strengthened leadership, organisation, and public speaking skills through practical teaching responsibilities and feedback-based development</li>
+        </ul>
+      </div>
+
+      <div class="exp-panel" id="panel-edu3">
+        <div class="exp-header">
+          <h3>Academic Presentation</h3>
+          <span class="exp-date">Jan 2024</span>
+        </div>
+        <p class="exp-company">University of Leeds</p>
+        <ul>
+          <li>Collaborated with peers to research and deliver a technical presentation to an audience of leading researchers and lecturers.</li>
+          <li>Successfully synthesised complex information, answered expert-level questions, and received the most votes for ‘Presentation of the Day’.</li>
+          <li>Developed advanced skills in public speaking, critical thinking, and professional communication.</li>
+        </ul>
+      </div>
+
+      <div class="exp-panel" id="panel-work1">
+        <div class="exp-header">
+          <h3>Research Intern</h3>
+          <span class="exp-date">Jun 2023</span>
+        </div>
+        <p class="exp-company">University of Bradford</p>
+        <ul>
+          <li><em>Selected for a competitive placement under the supervision of Professor Raj Patel - Head of Chemical Engineering</em></li>
+          <li>Applied principles of thermodynamics and materials science to solve real-world engineering challenges.</li>
+          <li>Developed a sustainable solar heater</li>
+          <li>Led a team through concept development, testing, and optimisation, resulting in a design 15% more efficient than existing models, receiving commendation by academic peers.</li>
+          <li>Gained valuable experience in sustainable energy research, team leadership, and professional technical reporting.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PHOTOGRAPHY ═══════════════ -->
+<section id="photography" class="section">
+  <div class="section-label">03 / photography</div>
+  <h2 class="section-title">Through the lens</h2>
+  <p class="section-intro">I shoot mostly cars, landscapes and candid moments. Here are a few recent favourites — replace these placeholders with your own shots.</p>
+
+  <div class="photo-grid">
+    <div class="photo-card tall">
+      <div class="photo-placeholder">
+        <i class="fas fa-camera"></i>
+        <span>Car Build — Engine Bay</span>
+        <span class="photo-meta">replace with your image</span>
+      </div>
+      <div class="photo-overlay">
+        <h4>The Build</h4>
+        <p>Documenting every stage of the car project.</p>
+      </div>
+    </div>
+    <div class="photo-card">
+      <div class="photo-placeholder">
+        <i class="fas fa-camera"></i>
+        <span>Landscape — Golden Hour</span>
+        <span class="photo-meta">replace with your image</span>
+      </div>
+      <div class="photo-overlay">
+        <h4>Golden Hour</h4>
+        <p>Chasing light across the Peak District.</p>
+      </div>
+    </div>
+    <div class="photo-card">
+      <div class="photo-placeholder">
+        <i class="fas fa-camera"></i>
+        <span>Car — Rolling Shot</span>
+        <span class="photo-meta">replace with your image</span>
+      </div>
+      <div class="photo-overlay">
+        <h4>Rolling</h4>
+        <p>Panning shot on an empty A-road.</p>
+      </div>
+    </div>
+    <div class="photo-card wide">
+      <div class="photo-placeholder">
+        <i class="fas fa-camera"></i>
+        <span>Tech — Workbench</span>
+        <span class="photo-meta">replace with your image</span>
+      </div>
+      <div class="photo-overlay">
+        <h4>The Workbench</h4>
+        <p>Where the experiments happen.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ WRITING ═══════════════ -->
+<section id="writing" class="section section-dark">
+  <div class="section-label">04 / writing</div>
+  <h2 class="section-title">Thoughts &amp; notes</h2>
+  <p class="section-intro">A mix of technical write-ups, car build logs, and the occasional opinion. Replace with your actual posts.</p>
+
+  <div class="writing-grid">
+    <article class="writing-card featured">
+      <div class="writing-tag">Car Build</div>
+      <h3>Building a [Your Car Here]: Where it all started</h3>
+      <p>Replace this with your first post about the car project. Walk through why you chose this car, what the plan is, and where you're starting from. A good origin story sets the tone for everything that follows.</p>
+      <div class="writing-meta">
+        <span><i class="fas fa-calendar-alt"></i> [Date]</span>
+        <span><i class="fas fa-clock"></i> 5 min read</span>
+      </div>
+      <a href="#" class="writing-link">Read more →</a>
+    </article>
+
+    <article class="writing-card">
+      <div class="writing-tag">Tech</div>
+      <h3>Building this website from scratch</h3>
+      <p>A walkthrough of how I built this site — the particle canvas, the games section, the email integration and what I learned along the way.</p>
+      <div class="writing-meta">
+        <span><i class="fas fa-calendar-alt"></i> [Date]</span>
+        <span><i class="fas fa-clock"></i> 4 min read</span>
+      </div>
+      <a href="#" class="writing-link">Read more →</a>
+    </article>
+
+    <article class="writing-card">
+      <div class="writing-tag">Physics</div>
+      <h3>[Your dissertation or project topic]</h3>
+      <p>A summary of my final-year research project. Replace with what you actually worked on — the problem, the method, and the result.</p>
+      <div class="writing-meta">
+        <span><i class="fas fa-calendar-alt"></i> [Date]</span>
+        <span><i class="fas fa-clock"></i> 7 min read</span>
+      </div>
+      <a href="#" class="writing-link">Read more →</a>
+    </article>
+  </div>
+</section>
+
+<!-- ═══════════════ GAMES ═══════════════ -->
+<section id="games" class="section">
+  <div class="section-label">05 / games</div>
+  <h2 class="section-title">Arcade</h2>
+  <p class="section-intro">A small collection of classic games I built — playable right here. Each one features a CPU opponent and local two-player mode.</p>
+
+  <div class="games-grid">
+    <a href="connect4.html" class="game-card-link" id="gc-connect4">
+      <div class="game-card-num">01</div>
+      <div class="game-card-preview">
+        <div class="gc-c4-grid">
+          <div class="gd r"></div><div class="gd r"></div><div class="gd y"></div><div class="gd"></div>
+          <div class="gd y"></div><div class="gd r"></div><div class="gd y"></div><div class="gd r"></div>
+          <div class="gd r"></div><div class="gd y"></div><div class="gd r"></div><div class="gd y"></div>
+        </div>
+      </div>
+      <div class="game-card-info">
+        <h3>Connect 4</h3>
+        <p>Drop discs, outsmart your opponent</p>
+        <span class="game-play-btn">PLAY →</span>
+      </div>
+    </a>
+
+    <a href="noughts-crosses.html" class="game-card-link" id="gc-ttt">
+      <div class="game-card-num">02</div>
+      <div class="game-card-preview">
+        <div class="gc-ttt-grid">
+          <span class="gx">✕</span><span></span><span class="go">○</span>
+          <span></span><span class="gx">✕</span><span></span>
+          <span class="go">○</span><span></span><span class="gx">✕</span>
+        </div>
+      </div>
+      <div class="game-card-info">
+        <h3>Noughts &amp; Crosses</h3>
+        <p>The timeless battle of X vs O</p>
+        <span class="game-play-btn">PLAY →</span>
+      </div>
+    </a>
+
+    <a href="hangman.html" class="game-card-link" id="gc-hangman">
+      <div class="game-card-num">03</div>
+      <div class="game-card-preview">
+        <svg viewBox="0 0 100 80" width="100" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="10" y1="76" x2="90" y2="76" stroke="#2a2a3d" stroke-width="3" stroke-linecap="round"/>
+          <line x1="28" y1="76" x2="28" y2="8"  stroke="#2a2a3d" stroke-width="3" stroke-linecap="round"/>
+          <line x1="28" y1="8"  x2="62" y2="8"  stroke="#2a2a3d" stroke-width="3" stroke-linecap="round"/>
+          <line x1="62" y1="8"  x2="62" y2="20" stroke="#2a2a3d" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="62" cy="28" r="8" stroke="#c20000" stroke-width="2.5"/>
+          <line x1="62" y1="36" x2="62" y2="56" stroke="#c20000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="62" y1="43" x2="52" y2="52" stroke="#c20000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="62" y1="43" x2="72" y2="52" stroke="#c20000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="62" y1="56" x2="53" y2="68" stroke="#c20000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="62" y1="56" x2="71" y2="68" stroke="#c20000" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="game-card-info">
+        <h3>Hangman</h3>
+        <p>Guess the word before time runs out</p>
+        <span class="game-play-btn">PLAY →</span>
+      </div>
+    </a>
+
+    <a href="battleships.html" class="game-card-link" id="gc-battle">
+      <div class="game-card-num">04</div>
+      <div class="game-card-preview">
+        <div class="gc-sea-grid">
+          <div class="gs hit"></div><div class="gs"></div><div class="gs ship"></div><div class="gs ship"></div>
+          <div class="gs miss"></div><div class="gs"></div><div class="gs"></div><div class="gs"></div>
+          <div class="gs"></div><div class="gs ship"></div><div class="gs hit"></div><div class="gs"></div>
+          <div class="gs"></div><div class="gs"></div><div class="gs miss"></div><div class="gs"></div>
+        </div>
+      </div>
+      <div class="game-card-info">
+        <h3>Battleships</h3>
+        <p>Sink the fleet, rule the seas</p>
+        <span class="game-play-btn">PLAY →</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════ CONTACT ═══════════════ -->
+<section id="contact" class="section section-dark">
+  <div class="section-label">06 / contact</div>
+  <h2 class="section-title">Get in touch</h2>
+  <p class="section-intro">Whether you have a question, an opportunity, or just want to talk cars or code — I'm all ears.</p>
+
+  <div class="contact-layout">
+    <div class="contact-info">
+      <div class="contact-item">
+        <i class="fab fa-github"></i>
+        <a href="https://github.com/asad-iq" target="_blank">github.com/asad-iq</a>
+      </div>
+      <div class="contact-item">
+        <i class="fab fa-linkedin"></i>
+        <a href="https://linkedin.com/in/asad-i-79b5a4239/" target="_blank">linkedin.com/in/asad-i</a>
+      </div>
+      <div class="contact-item">
+        <i class="fab fa-instagram"></i>
+        <a href="https://instagram.com/asad.ai_/" target="_blank">instagram.com/asad.ai_</a>
+      </div>
+    </div>
+
+    <div class="contact-form">
+      <div class="form-row">
+        <input type="text"  id="name"    placeholder="Your name"    class="form-input">
+        <input type="email" id="email"   placeholder="Your email"   class="form-input">
+      </div>
+      <textarea id="message" placeholder="Your message..." class="form-input form-textarea"></textarea>
+      <button onclick="sendEmail()" class="btn-primary form-submit">Send message</button>
+      <p id="status" class="form-status"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-name">Asad Iqbal<span class="nav-dot">.</span></span>
+    <span class="footer-copy">© <span id="year"></span> — Built &amp; designed by Asad Iqbal</span>
+    <div class="footer-socials">
+      <a href="https://github.com/asad-iq" target="_blank"><i class="fab fa-github"></i></a>
+      <a href="https://linkedin.com/in/asad-i-79b5a4239/" target="_blank"><i class="fab fa-linkedin"></i></a>
+      <a href="https://instagram.com/asad.ai_/" target="_blank"><i class="fab fa-instagram"></i></a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ── Year
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// ── Typing effect
+const text = "Hey, I'm Asad.";
+const el = document.getElementById("typing-text");
+let idx = 0;
+function type() {
+  if (idx < text.length) { el.textContent += text.charAt(idx++); setTimeout(type, 60); }
+}
+setTimeout(type, 400);
+
+// ── Navbar scroll style
+window.addEventListener("scroll", () => {
+  document.getElementById("navbar").classList.toggle("scrolled", window.scrollY > 40);
+});
+
+// ── Hamburger menu
+const hamburger = document.getElementById("hamburger");
+const mobileNav = document.getElementById("mobile-nav");
+hamburger.addEventListener("click", () => {
+  hamburger.classList.toggle("open");
+  mobileNav.classList.toggle("open");
+});
+function closeMobileNav() {
+  hamburger.classList.remove("open");
+  mobileNav.classList.remove("open");
+}
+
+// ── Experience tabs
+document.querySelectorAll(".exp-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".exp-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".exp-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("panel-" + btn.dataset.target).classList.add("active");
+  });
+});
+
+// ── Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); } });
+}, { threshold: 0.1 });
+document.querySelectorAll(".section, .photo-card, .writing-card, .game-card-link, .stat").forEach(el => {
+  el.classList.add("reveal");
+  observer.observe(el);
+});
+
+// ── Email
+function sendEmail() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const message = document.getElementById("message").value.trim();
+  const statusEl = document.getElementById("status");
+
+  if (!name || !email || !message) {
+    statusEl.textContent = "Please fill in all fields.";
+    statusEl.style.color = "#c20000";
+    return;
+  }
+
+  emailjs.send("service_4hvpjcp", "template_6jvjbkp", { name, email, message })
+    .then(() => {
+      statusEl.textContent = "Message sent successfully!";
+      statusEl.style.color = "#00a000";
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("message").value = "";
+    })
+    .catch(() => {
+      statusEl.textContent = "Failed to send message. Please email asad.aiqbal2005@gmail.com.";
+      statusEl.style.color = "#c20000";
+    });
+}
+
+// ── Particle canvas
+(function() {
+  const canvas  = document.getElementById("particle-canvas");
+  const ctx     = canvas.getContext("2d");
+  const image   = document.getElementById("source-image");
+  const frame   = canvas.parentElement; // .hero-photo-frame
+
+  // Size the canvas backing buffer to match the CSS frame size
+  function syncCanvasSize() {
+    const w = frame.clientWidth  || 420;
+    const h = frame.clientHeight || 420;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  syncCanvasSize();
+
+  let particles = [];
+  let mouse = { x: 9999, y: 9999 };
+
+  frame.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+  frame.addEventListener("mouseleave", () => { mouse.x = 9999; mouse.y = 9999; });
+
+  class Particle {
+    constructor(x, y, r, g, b) {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.baseX = x; this.baseY = y;
+      this.size = 1.5;
+      this.density = Math.random() * 20 + 5;
+      this.color = `rgb(${r},${g},${b})`;
+    }
+    update() {
+      const dx = mouse.x - this.x, dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const radius = 100;
+      if (dist < radius && dist > 0) {
+        const force = (radius - dist) / radius;
+        this.x -= (dx/dist) * force * this.density;
+        this.y -= (dy/dist) * force * this.density;
+      } else {
+        this.x += (this.baseX - this.x) * 0.06;
+        this.y += (this.baseY - this.y) * 0.06;
+      }
+    }
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+  }
+
+  function buildParticles() {
+    syncCanvasSize();
+    particles = [];
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y += 4) {
+      for (let x = 0; x < canvas.width; x += 4) {
+        const i = (y * canvas.width + x) * 4;
+        const r = imageData.data[i], g = imageData.data[i+1], b = imageData.data[i+2];
+        if ((r + g + b) / 3 < 210) particles.push(new Particle(x, y, r, g, b));
+      }
+    }
+  }
+
+  image.onload = () => { buildParticles(); animate(); };
+  if (image.complete && image.naturalWidth) { buildParticles(); animate(); }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect 4 — ARCADE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="../index.html" class="back-btn">← BACK</a>
+      <div class="game-title-bar">
+        <h1 style="color: var(--accent-red); text-shadow: var(--glow-red);">CONNECT 4</h1>
+        <p class="subtitle">drop · connect · win</p>
+      </div>
+      <div class="mode-selector">
+        <button class="mode-btn active" id="btn-vs-cpu" onclick="setMode('cpu')">VS CPU</button>
+        <button class="mode-btn" id="btn-vs-p2" onclick="setMode('2p')">2 PLAYER</button>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-item score-p1">
+        <span class="score-label" id="p1-label">PLAYER 1</span>
+        <span class="score-value" id="score-p1">0</span>
+      </div>
+      <div class="score-item score-draw">
+        <span class="score-label">DRAWS</span>
+        <span class="score-value" id="score-draw">0</span>
+      </div>
+      <div class="score-item score-p2">
+        <span class="score-label" id="p2-label">CPU</span>
+        <span class="score-value" id="score-p2">0</span>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background: var(--accent-red);"></span>
+      <span id="status-text">Player 1's turn — drop a disc</span>
+    </div>
+
+    <div class="c4-container">
+      <div class="c4-board-wrapper">
+        <div class="c4-hints" id="c4-hints"></div>
+        <div class="c4-board" id="c4-board"></div>
+      </div>
+      <button class="reset-btn" onclick="resetGame()">[ NEW GAME ]</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // CONNECT 4 — Game Logic
+    // ============================================================
+    const ROWS = 6, COLS = 7;
+    let board = [], currentPlayer = 1, gameOver = false, mode = 'cpu';
+    let scores = { p1: 0, p2: 0, draw: 0 };
+    let cpuThinking = false;
+
+    function init() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      currentPlayer = 1;
+      gameOver = false;
+      cpuThinking = false;
+      renderBoard();
+      renderHints();
+      updateStatus();
+    }
+
+    function renderBoard() {
+      const boardEl = document.getElementById('c4-board');
+      boardEl.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'c4-cell';
+          if (board[r][c] === 1) cell.classList.add('p1');
+          if (board[r][c] === 2) cell.classList.add('p2');
+          cell.dataset.col = c;
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function renderHints() {
+      const hintsEl = document.getElementById('c4-hints');
+      hintsEl.innerHTML = '';
+      for (let c = 0; c < COLS; c++) {
+        const hint = document.createElement('div');
+        hint.className = 'c4-hint';
+        hint.dataset.col = c;
+        hint.addEventListener('mouseenter', () => highlightCol(c, true));
+        hint.addEventListener('mouseleave', () => highlightCol(c, false));
+        hint.addEventListener('click', () => handleClick(c));
+        hintsEl.appendChild(hint);
+      }
+
+      // Also make board cells clickable via column
+      document.getElementById('c4-board').addEventListener('click', e => {
+        const col = e.target.dataset.col;
+        if (col !== undefined) handleClick(parseInt(col));
+      });
+      document.getElementById('c4-board').addEventListener('mouseover', e => {
+        const col = e.target.dataset.col;
+        if (col !== undefined) highlightCol(parseInt(col), true);
+      });
+      document.getElementById('c4-board').addEventListener('mouseout', () => {
+        for (let c = 0; c < COLS; c++) highlightCol(c, false);
+      });
+    }
+
+    function highlightCol(col, on) {
+      if (gameOver || cpuThinking) return;
+      const color = currentPlayer === 1 ? 'rgba(255,45,85,0.4)' : 'rgba(255,214,10,0.4)';
+      const hints = document.querySelectorAll('.c4-hint');
+      if (hints[col]) hints[col].style.background = on ? color : 'transparent';
+
+      // Highlight top empty cell in column
+      const row = getAvailableRow(col);
+      const cells = document.querySelectorAll('.c4-cell');
+      cells.forEach(c => c.classList.remove('hover-preview'));
+      if (on && row !== -1) {
+        cells[row * COLS + col].style.opacity = on ? '0.45' : '1';
+      }
+    }
+
+    function handleClick(col) {
+      if (gameOver || cpuThinking) return;
+      if (mode === 'cpu' && currentPlayer === 2) return;
+      dropDisc(col);
+    }
+
+    function dropDisc(col) {
+      const row = getAvailableRow(col);
+      if (row === -1) return false;
+
+      board[row][col] = currentPlayer;
+      renderBoard();
+
+      // Animate the dropped cell
+      const cells = document.querySelectorAll('.c4-cell');
+      const cell = cells[row * COLS + col];
+      cell.classList.add('drop-anim');
+      setTimeout(() => cell.classList.remove('drop-anim'), 300);
+
+      const win = checkWin(row, col);
+      if (win) {
+        highlightWin(win);
+        gameOver = true;
+        const winner = currentPlayer === 1 ? 'Player 1' : (mode === 'cpu' ? 'CPU' : 'Player 2');
+        updateStatus(`${winner.toUpperCase()} WINS! 🎉`, currentPlayer);
+        if (currentPlayer === 1) { scores.p1++; document.getElementById('score-p1').textContent = scores.p1; }
+        else { scores.p2++; document.getElementById('score-p2').textContent = scores.p2; }
+        return true;
+      }
+
+      if (board[0].every(cell => cell !== 0)) {
+        gameOver = true;
+        updateStatus('DRAW! Well played both.');
+        scores.draw++;
+        document.getElementById('score-draw').textContent = scores.draw;
+        return true;
+      }
+
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      updateStatus();
+
+      if (mode === 'cpu' && currentPlayer === 2 && !gameOver) {
+        cpuThinking = true;
+        setTimeout(() => { cpuMove(); cpuThinking = false; }, 500);
+      }
+      return true;
+    }
+
+    function getAvailableRow(col) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r][col] === 0) return r;
+      }
+      return -1;
+    }
+
+    function checkWin(row, col) {
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      const p = board[row][col];
+      for (const [dr, dc] of dirs) {
+        let cells = [[row, col]];
+        for (let d = 1; d < 4; d++) {
+          const r = row + dr*d, c = col + dc*d;
+          if (r>=0&&r<ROWS&&c>=0&&c<COLS&&board[r][c]===p) cells.push([r,c]); else break;
+        }
+        for (let d = 1; d < 4; d++) {
+          const r = row - dr*d, c = col - dc*d;
+          if (r>=0&&r<ROWS&&c>=0&&c<COLS&&board[r][c]===p) cells.push([r,c]); else break;
+        }
+        if (cells.length >= 4) return cells;
+      }
+      return null;
+    }
+
+    function highlightWin(cells) {
+      const boardCells = document.querySelectorAll('.c4-cell');
+      cells.forEach(([r,c]) => {
+        boardCells[r * COLS + c].classList.add('win-cell');
+      });
+    }
+
+    function updateStatus(msg, player) {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (msg) {
+        text.textContent = msg;
+        dot.style.background = 'var(--accent-green)';
+        dot.style.animation = 'none';
+        return;
+      }
+      const p = currentPlayer;
+      const name = p === 1 ? 'PLAYER 1' : (mode === 'cpu' ? 'CPU' : 'PLAYER 2');
+      text.textContent = `${name}'s turn — drop a disc`;
+      dot.style.background = p === 1 ? 'var(--accent-red)' : 'var(--accent-yellow)';
+      dot.style.animation = 'blink 1s infinite';
+    }
+
+    // ============================================================
+    // CPU AI — Minimax with alpha-beta
+    // ============================================================
+    function cpuMove() {
+      let bestCol = -1, bestScore = -Infinity;
+      for (let c = 0; c < COLS; c++) {
+        if (getAvailableRow(c) === -1) continue;
+        const r = getAvailableRow(c);
+        board[r][c] = 2;
+        const s = minimax(board, 5, -Infinity, Infinity, false);
+        board[r][c] = 0;
+        if (s > bestScore) { bestScore = s; bestCol = c; }
+      }
+      dropDisc(bestCol);
+    }
+
+    function minimax(b, depth, alpha, beta, maximizing) {
+      // Check terminal states
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        if (b[r][c] !== 0) {
+          const win = checkWinBoard(b, r, c);
+          if (win) return b[r][c] === 2 ? 1000000 + depth : -1000000 - depth;
+        }
+      }
+      if (depth === 0 || b[0].every(cell => cell !== 0)) return scoreBoard(b);
+
+      if (maximizing) {
+        let best = -Infinity;
+        for (let c = 0; c < COLS; c++) {
+          const r = getAvailableRowB(b, c);
+          if (r === -1) continue;
+          b[r][c] = 2;
+          best = Math.max(best, minimax(b, depth-1, alpha, beta, false));
+          b[r][c] = 0;
+          alpha = Math.max(alpha, best);
+          if (beta <= alpha) break;
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let c = 0; c < COLS; c++) {
+          const r = getAvailableRowB(b, c);
+          if (r === -1) continue;
+          b[r][c] = 1;
+          best = Math.min(best, minimax(b, depth-1, alpha, beta, true));
+          b[r][c] = 0;
+          beta = Math.min(beta, best);
+          if (beta <= alpha) break;
+        }
+        return best;
+      }
+    }
+
+    function getAvailableRowB(b, col) {
+      for (let r = ROWS-1; r >= 0; r--) if (b[r][col] === 0) return r;
+      return -1;
+    }
+
+    function checkWinBoard(b, row, col) {
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      const p = b[row][col];
+      if (p === 0) return null;
+      for (const [dr,dc] of dirs) {
+        let count = 1;
+        for (let d=1;d<4;d++){const r=row+dr*d,c=col+dc*d;if(r>=0&&r<ROWS&&c>=0&&c<COLS&&b[r][c]===p)count++;else break;}
+        for (let d=1;d<4;d++){const r=row-dr*d,c=col-dc*d;if(r>=0&&r<ROWS&&c>=0&&c<COLS&&b[r][c]===p)count++;else break;}
+        if (count >= 4) return true;
+      }
+      return false;
+    }
+
+    function scoreBoard(b) {
+      let score = 0;
+      // Prefer center
+      const centerCol = Math.floor(COLS/2);
+      for (let r = 0; r < ROWS; r++) {
+        if (b[r][centerCol] === 2) score += 3;
+        if (b[r][centerCol] === 1) score -= 3;
+      }
+      // Score windows
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        for (const [dr,dc] of dirs) {
+          const window = [];
+          for (let i=0;i<4;i++){const rr=r+dr*i,cc=c+dc*i;if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)window.push(b[rr][cc]);}
+          if (window.length === 4) score += scoreWindow(window);
+        }
+      }
+      return score;
+    }
+
+    function scoreWindow(w) {
+      const cpu=w.filter(x=>x===2).length, p1=w.filter(x=>x===1).length, empty=w.filter(x=>x===0).length;
+      if (cpu===4) return 100;
+      if (cpu===3&&empty===1) return 5;
+      if (cpu===2&&empty===2) return 2;
+      if (p1===3&&empty===1) return -4;
+      if (p1===4) return -100;
+      return 0;
+    }
+
+    // ============================================================
+    // UI Controls
+    // ============================================================
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btn-vs-cpu').classList.toggle('active', m === 'cpu');
+      document.getElementById('btn-vs-p2').classList.toggle('active', m === '2p');
+      document.getElementById('p2-label').textContent = m === 'cpu' ? 'CPU' : 'PLAYER 2';
+      scores = { p1: 0, p2: 0, draw: 0 };
+      document.getElementById('score-p1').textContent = 0;
+      document.getElementById('score-p2').textContent = 0;
+      document.getElementById('score-draw').textContent = 0;
+      resetGame();
+    }
+
+    function resetGame() { init(); }
+
+    init();
+  </script>
+</body>
+</html>

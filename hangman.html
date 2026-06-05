@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hangman — ARCADE</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- Hangman-specific styles ---- */
+    .hm-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 1rem 2rem;
+      gap: 1rem;
+    }
+
+    .hm-layout {
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    /* Gallows SVG */
+    .hm-gallows {
+      flex-shrink: 0;
+    }
+    .hm-gallows svg {
+      width: clamp(160px, 28vw, 220px);
+      height: auto;
+    }
+    .gallows-structure { stroke: var(--border); }
+    .gallows-figure    { stroke: var(--accent-green); stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+    .gallows-figure.hidden { display: none; }
+
+    /* Word display */
+    .hm-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .hm-category {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .hm-word {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .hm-letter-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .hm-letter-char {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      letter-spacing: 0.05em;
+      color: var(--text);
+      min-width: 1.2ch;
+      text-align: center;
+      transition: transform 0.2s, color 0.2s;
+    }
+    .hm-letter-char.revealed {
+      animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .hm-letter-char.wrong-reveal { color: var(--accent-red); }
+    @keyframes popIn {
+      from { transform: scale(0) translateY(-10px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);    opacity: 1; }
+    }
+    .hm-letter-line {
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+    }
+
+    /* Hint — wrong letters */
+    .hm-wrong-letters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .hm-wrong-chip {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--accent-red);
+      background: rgba(255,45,85,0.1);
+      border: 1px solid rgba(255,45,85,0.3);
+      padding: 0.15rem 0.5rem;
+      animation: popIn 0.2s ease;
+    }
+
+    .hm-lives {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+    .hm-lives span { color: var(--accent-green); font-size: 0.9rem; }
+    .hm-lives span.danger { color: var(--accent-red); }
+
+    /* Keyboard */
+    .hm-keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: center;
+      width: 100%;
+      max-width: 520px;
+    }
+    .hm-kb-row {
+      display: flex;
+      gap: 0.35rem;
+      justify-content: center;
+    }
+    .hm-key {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      width: clamp(30px, 7vw, 42px);
+      height: clamp(30px, 7vw, 42px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hm-key:hover:not(:disabled) {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      background: rgba(48,209,88,0.08);
+    }
+    .hm-key:disabled { opacity: 0.2; cursor: not-allowed; }
+    .hm-key.correct { color: var(--accent-green); border-color: var(--accent-green); background: rgba(48,209,88,0.12); }
+    .hm-key.wrong   { color: var(--accent-red);   border-color: rgba(255,45,85,0.3); background: rgba(255,45,85,0.05); }
+
+    /* Difficulty selector */
+    .diff-selector {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+    }
+    .diff-btn {
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      transition: all 0.2s;
+    }
+    .diff-btn.active, .diff-btn:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Game over overlay */
+    .hm-result {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.1em;
+      text-align: center;
+      min-height: 2rem;
+    }
+    .hm-result.win  { color: var(--accent-green); }
+    .hm-result.lose { color: var(--accent-red); }
+    .hm-reveal-word {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-align: center;
+      letter-spacing: 0.15em;
+    }
+
+    /* Score */
+    .hm-score-row {
+      display: flex;
+      gap: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      justify-content: center;
+    }
+    .hm-score-val {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      display: block;
+      text-align: center;
+    }
+    .hm-score-wins .hm-score-val { color: var(--accent-green); }
+    .hm-score-loss .hm-score-val { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="../index.html" class="back-btn">← BACK</a>
+      <div class="game-title-bar">
+        <h1 style="color:var(--accent-green);text-shadow:0 0 20px rgba(48,209,88,0.5)">HANGMAN</h1>
+        <p class="subtitle">guess · survive · win</p>
+      </div>
+      <div class="diff-selector">
+        <button class="diff-btn active" id="diff-easy"   onclick="setDiff('easy')">EASY</button>
+        <button class="diff-btn"        id="diff-medium" onclick="setDiff('medium')">MEDIUM</button>
+        <button class="diff-btn"        id="diff-hard"   onclick="setDiff('hard')">HARD</button>
+      </div>
+    </div>
+
+    <div class="hm-score-row" style="padding:0.75rem 0 0;">
+      <div class="hm-score-wins">
+        <span class="hm-score-val" id="sc-wins">0</span>
+        WINS
+      </div>
+      <div class="hm-score-loss">
+        <span class="hm-score-val" id="sc-loss">0</span>
+        LOSSES
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background:var(--accent-green)"></span>
+      <span id="status-text">Guess a letter to begin</span>
+    </div>
+
+    <div class="hm-container">
+      <div class="hm-layout">
+        <!-- Gallows -->
+        <div class="hm-gallows">
+          <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <!-- Structure -->
+            <line class="gallows-structure" x1="10" y1="195" x2="170" y2="195" stroke-width="4" stroke-linecap="round"/>
+            <line class="gallows-structure" x1="50" y1="195" x2="50" y2="10"   stroke-width="4" stroke-linecap="round"/>
+            <line class="gallows-structure" x1="50" y1="10"  x2="120" y2="10"  stroke-width="4" stroke-linecap="round"/>
+            <line class="gallows-structure" x1="120" y1="10" x2="120" y2="35"  stroke-width="4" stroke-linecap="round"/>
+            <!-- Figure parts (shown one by one on wrong guesses) -->
+            <circle id="hm-head"  class="gallows-figure hidden" cx="120" cy="50" r="15" stroke-width="3"/>
+            <line   id="hm-body"  class="gallows-figure hidden" x1="120" y1="65" x2="120" y2="115" stroke-width="3"/>
+            <line   id="hm-larm" class="gallows-figure hidden" x1="120" y1="80" x2="95"  y2="105" stroke-width="3"/>
+            <line   id="hm-rarm" class="gallows-figure hidden" x1="120" y1="80" x2="145" y2="105" stroke-width="3"/>
+            <line   id="hm-lleg" class="gallows-figure hidden" x1="120" y1="115" x2="95" y2="148" stroke-width="3"/>
+            <line   id="hm-rleg" class="gallows-figure hidden" x1="120" y1="115" x2="145" y2="148" stroke-width="3"/>
+          </svg>
+        </div>
+
+        <!-- Word + info -->
+        <div class="hm-right">
+          <div class="hm-category" id="hm-category">— category —</div>
+          <div class="hm-word" id="hm-word"></div>
+          <div class="hm-lives">LIVES: <span id="hm-lives-val">6</span> remaining</div>
+          <div>
+            <div class="hm-category" style="margin-bottom:0.4rem">WRONG GUESSES</div>
+            <div class="hm-wrong-letters" id="hm-wrong"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hm-result" id="hm-result"></div>
+      <div class="hm-reveal-word" id="hm-reveal"></div>
+
+      <!-- On-screen keyboard -->
+      <div class="hm-keyboard" id="hm-keyboard"></div>
+
+      <button class="reset-btn" onclick="newGame()">[ NEW WORD ]</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // WORD BANKS
+    // ============================================================
+    const WORDS = {
+      easy: [
+        { word: 'CAT',    category: 'Animal' },
+        { word: 'DOG',    category: 'Animal' },
+        { word: 'SUN',    category: 'Nature' },
+        { word: 'BOOK',   category: 'Object' },
+        { word: 'FISH',   category: 'Animal' },
+        { word: 'BALL',   category: 'Sport'  },
+        { word: 'TREE',   category: 'Nature' },
+        { word: 'STAR',   category: 'Nature' },
+        { word: 'CAKE',   category: 'Food'   },
+        { word: 'SHIP',   category: 'Vehicle'},
+      ],
+      medium: [
+        { word: 'PYTHON',   category: 'Programming' },
+        { word: 'CASTLE',   category: 'Place'       },
+        { word: 'GUITAR',   category: 'Music'       },
+        { word: 'PLANET',   category: 'Science'     },
+        { word: 'BRIDGE',   category: 'Structure'   },
+        { word: 'JUNGLE',   category: 'Nature'      },
+        { word: 'ROCKET',   category: 'Vehicle'     },
+        { word: 'WALLET',   category: 'Object'      },
+        { word: 'SPIDER',   category: 'Animal'      },
+        { word: 'CHROME',   category: 'Browser'     },
+        { word: 'DRAGON',   category: 'Fantasy'     },
+        { word: 'WINDOW',   category: 'Object'      },
+        { word: 'MUSEUM',   category: 'Place'       },
+        { word: 'FALCON',   category: 'Animal'      },
+        { word: 'COFFEE',   category: 'Drink'       },
+      ],
+      hard: [
+        { word: 'ALGORITHM',  category: 'Computing'  },
+        { word: 'SPHINX',     category: 'Mythology'  },
+        { word: 'JAVASCRIPT', category: 'Programming'},
+        { word: 'QUARTZ',     category: 'Mineral'    },
+        { word: 'FJORD',      category: 'Geography'  },
+        { word: 'XYLOPHONE',  category: 'Music'      },
+        { word: 'Byzantine',  category: 'History'    },
+        { word: 'PNEUMONIA',  category: 'Medicine'   },
+        { word: 'CRYPTOGRAPHY', category: 'Security' },
+        { word: 'PHOSPHORUS', category: 'Chemistry'  },
+        { word: 'ZEITGEIST',  category: 'Philosophy' },
+        { word: 'ARCHIPELAGO',category: 'Geography'  },
+      ]
+    };
+
+    const FIGURE_PARTS = ['hm-head','hm-body','hm-larm','hm-rarm','hm-lleg','hm-rleg'];
+    const KB_ROWS = ['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+    const MAX_WRONG = 6;
+
+    let currentWord = '', category = '', guessed = new Set(), wrongCount = 0;
+    let gameOver = false, difficulty = 'easy';
+    let scores = { wins: 0, loss: 0 };
+
+    function setDiff(d) {
+      difficulty = d;
+      ['easy','medium','hard'].forEach(x => {
+        document.getElementById('diff-'+x).classList.toggle('active', x === d);
+      });
+      newGame();
+    }
+
+    function newGame() {
+      const list = WORDS[difficulty];
+      const entry = list[Math.floor(Math.random() * list.length)];
+      currentWord = entry.word;
+      category = entry.category;
+      guessed = new Set();
+      wrongCount = 0;
+      gameOver = false;
+
+      // Reset figure
+      FIGURE_PARTS.forEach(id => document.getElementById(id).classList.add('hidden'));
+
+      document.getElementById('hm-category').textContent = '— ' + category + ' —';
+      document.getElementById('hm-wrong').innerHTML = '';
+      document.getElementById('hm-result').textContent = '';
+      document.getElementById('hm-result').className = 'hm-result';
+      document.getElementById('hm-reveal').textContent = '';
+      document.getElementById('hm-lives-val').textContent = MAX_WRONG;
+      document.getElementById('hm-lives-val').className = '';
+
+      renderWord();
+      renderKeyboard();
+      setStatus('Guess a letter to begin', 'var(--accent-green)');
+    }
+
+    function renderWord() {
+      const wordEl = document.getElementById('hm-word');
+      wordEl.innerHTML = '';
+      for (const ch of currentWord) {
+        const slot = document.createElement('div');
+        slot.className = 'hm-letter-slot';
+        const char = document.createElement('div');
+        char.className = 'hm-letter-char';
+        if (guessed.has(ch)) {
+          char.textContent = ch;
+          char.classList.add('revealed');
+        } else {
+          char.textContent = '';
+        }
+        const line = document.createElement('div');
+        line.className = 'hm-letter-line';
+        slot.appendChild(char);
+        slot.appendChild(line);
+        wordEl.appendChild(slot);
+      }
+    }
+
+    function renderKeyboard() {
+      const kb = document.getElementById('hm-keyboard');
+      kb.innerHTML = '';
+      KB_ROWS.forEach(row => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'hm-kb-row';
+        for (const ch of row) {
+          const btn = document.createElement('button');
+          btn.className = 'hm-key';
+          btn.textContent = ch;
+          btn.dataset.key = ch;
+          btn.addEventListener('click', () => guess(ch));
+          rowEl.appendChild(btn);
+        }
+        kb.appendChild(rowEl);
+      });
+    }
+
+    function guess(letter) {
+      if (gameOver || guessed.has(letter)) return;
+      guessed.add(letter);
+
+      const btn = document.querySelector(`.hm-key[data-key="${letter}"]`);
+
+      if (currentWord.includes(letter)) {
+        btn.classList.add('correct');
+        btn.disabled = true;
+        renderWord();
+        // Check win
+        if ([...currentWord].every(ch => guessed.has(ch))) {
+          gameOver = true;
+          scores.wins++;
+          document.getElementById('sc-wins').textContent = scores.wins;
+          document.getElementById('hm-result').textContent = 'YOU WIN!';
+          document.getElementById('hm-result').className = 'hm-result win';
+          setStatus('Excellent! Word found!', 'var(--accent-green)');
+          disableKeyboard();
+        }
+      } else {
+        btn.classList.add('wrong');
+        btn.disabled = true;
+        wrongCount++;
+        // Show next figure part
+        document.getElementById(FIGURE_PARTS[wrongCount - 1]).classList.remove('hidden');
+        // Update lives
+        const livesEl = document.getElementById('hm-lives-val');
+        livesEl.textContent = MAX_WRONG - wrongCount;
+        if (MAX_WRONG - wrongCount <= 2) livesEl.className = 'danger';
+        // Wrong letters display
+        const chip = document.createElement('span');
+        chip.className = 'hm-wrong-chip';
+        chip.textContent = letter;
+        document.getElementById('hm-wrong').appendChild(chip);
+
+        setStatus(`Wrong! ${MAX_WRONG - wrongCount} lives left`, 'var(--accent-red)');
+
+        if (wrongCount >= MAX_WRONG) {
+          gameOver = true;
+          scores.loss++;
+          document.getElementById('sc-loss').textContent = scores.loss;
+          document.getElementById('hm-result').textContent = 'GAME OVER';
+          document.getElementById('hm-result').className = 'hm-result lose';
+          document.getElementById('hm-reveal').textContent = 'The word was: ' + currentWord;
+          // Reveal the word
+          [...currentWord].forEach(ch => guessed.add(ch));
+          renderWord();
+          document.querySelectorAll('.hm-letter-char').forEach(el => el.classList.add('wrong-reveal'));
+          disableKeyboard();
+        }
+      }
+    }
+
+    function disableKeyboard() {
+      document.querySelectorAll('.hm-key').forEach(btn => btn.disabled = true);
+    }
+
+    function setStatus(msg, color) {
+      document.getElementById('status-text').textContent = msg;
+      document.getElementById('status-dot').style.background = color;
+    }
+
+    // Physical keyboard support
+    document.addEventListener('keydown', e => {
+      const key = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(key) && !gameOver) guess(key);
+    });
+
+    newGame();
+  </script>
+</body>
+</html>
