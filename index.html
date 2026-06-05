@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+  // Apply theme before paint — prevents flash
+  (function(){
+    var t = localStorage.getItem("theme") || "auto";
+    var eff = t === "auto"
+      ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+      : t;
+    document.documentElement.setAttribute("data-theme", eff);
+  })();
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asad Iqbal</title>
@@ -38,11 +48,10 @@
     <a href="https://instagram.com/asad.ai_/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
   </div>
 
-  <!-- Theme toggle: cycles dark → light → auto -->
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-    <i id="theme-icon" class="fas fa-moon"></i>
-    <span id="theme-label">dark</span>
-  </button>
+  <i id="theme-icon" class="fas fa-moon"></i>
+  <span id="theme-label">dark</span>
+</button>
 
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -454,31 +463,38 @@ function closeMobileNav() {
   mobileNav.classList.remove("open");
 }
 
-// ── Theme toggle: dark → light → auto, persisted in localStorage
-const root      = document.documentElement;
-const themeBtn  = document.getElementById("theme-toggle");
-const themeIcon = document.getElementById("theme-icon");
-const themeLabel= document.getElementById("theme-label");
-
+// ── Theme toggle
 const THEMES = ["dark", "light", "auto"];
 const ICONS  = { dark: "fas fa-moon", light: "fas fa-sun", auto: "fas fa-circle-half-stroke" };
+const LABELS = { dark: "dark", light: "light", auto: "auto" };
 
 function applyTheme(t) {
-  // "auto" reads system preference
-  const effective = t === "auto"
+  var eff = t === "auto"
     ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
     : t;
-  root.setAttribute("data-theme", effective);
+  document.documentElement.setAttribute("data-theme", eff);
   localStorage.setItem("theme", t);
-  themeIcon.className  = ICONS[t];
-  themeLabel.textContent = t;
+  var icon = document.getElementById("theme-icon");
+  var label = document.getElementById("theme-label");
+  if (icon)  icon.className  = ICONS[t]  || ICONS.dark;
+  if (label) label.textContent = LABELS[t] || t;
 }
 
 function cycleTheme() {
-  const current = localStorage.getItem("theme") || "dark";
-  const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+  var current = localStorage.getItem("theme") || "dark";
+  var next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
   applyTheme(next);
 }
+
+// Init
+applyTheme(localStorage.getItem("theme") || "auto");
+
+var themeBtn = document.getElementById("theme-toggle");
+if (themeBtn) themeBtn.addEventListener("click", cycleTheme);
+
+window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function() {
+  if (localStorage.getItem("theme") === "auto") applyTheme("auto");
+});
 
 // Init on load
 const savedTheme = localStorage.getItem("theme") || "auto";
