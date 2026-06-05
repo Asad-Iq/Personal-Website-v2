@@ -5,27 +5,56 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 
+/* ── Dark mode (default) ── */
 :root {
-  --bg: #0a0a0f;
-  --surface: #13131a;
-  --surface2: #1c1c28;
-  --border: #2a2a3d;
-  --accent-red: #ff2d55;
-  --accent-yellow: #ffd60a;
-  --accent-blue: #0a84ff;
+  --bg:           #0a0a0f;
+  --surface:      #13131a;
+  --surface2:     #1c1c28;
+  --border:       #2a2a3d;
+  --accent-red:   #ff2d55;
+  --accent-yellow:#ffd60a;
+  --accent-blue:  #0a84ff;
   --accent-green: #30d158;
-  --text: #f0f0f5;
-  --text-dim: #6e6e8a;
+  --text:         #f0f0f5;
+  --text-dim:     #6e6e8a;
   --font-display: 'Bebas Neue', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --font-body: 'DM Sans', sans-serif;
-  --glow-red: 0 0 20px rgba(255,45,85,0.5);
-  --glow-yellow: 0 0 20px rgba(255,214,10,0.5);
-  --glow-blue: 0 0 20px rgba(10,132,255,0.5);
+  --font-mono:    'Space Mono', monospace;
+  --font-body:    'DM Sans', sans-serif;
+  --glow-red:     0 0 20px rgba(255,45,85,0.5);
+  --glow-yellow:  0 0 20px rgba(255,214,10,0.5);
+  --glow-blue:    0 0 20px rgba(10,132,255,0.5);
+  --scanline-opacity: 0.08;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Light mode ── */
+[data-theme="light"] {
+  --bg:           #f0f0f5;
+  --surface:      #e2e2ec;
+  --surface2:     #d4d4e2;
+  --border:       #b8b8cc;
+  --text:         #0f0f1a;
+  --text-dim:     #6e6e8a;
+  --glow-red:     0 0 16px rgba(255,45,85,0.25);
+  --glow-yellow:  0 0 16px rgba(200,160,0,0.25);
+  --glow-blue:    0 0 16px rgba(10,132,255,0.25);
+  --scanline-opacity: 0.03;
+}
+/* In light mode the c4 board and ttt board need distinct backgrounds */
+[data-theme="light"] .c4-board     { background: var(--surface2); }
+[data-theme="light"] .c4-cell      { background: var(--surface);  }
+[data-theme="light"] .ttt-cell     { background: var(--surface);  }
+[data-theme="light"] .ttt-cell:hover:not(.taken) { background: var(--surface2); }
+[data-theme="light"] .ttt-cell.win-cell { background: var(--surface2); }
+[data-theme="light"] @keyframes ttt-pulse {
+  from { background: var(--surface2); }
+  to   { background: var(--border);   }
+}
+/* Battleships sea grid light mode */
+[data-theme="light"] .bs-cell      { background: #c8dff5; border-color: rgba(10,132,255,0.15); }
+[data-theme="light"] .bs-cell.ship { background: #6fa8d4; border-color: rgba(10,132,255,0.5); }
+[data-theme="light"] .bs-grid      { background: #c8dff5; }
 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
@@ -35,6 +64,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* CRT scanlines overlay */
@@ -47,8 +77,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
+    rgba(0,0,0,var(--scanline-opacity)) 2px,
+    rgba(0,0,0,var(--scanline-opacity)) 4px
   );
 }
 
@@ -64,194 +94,31 @@ body {
 }
 
 /* ============================================================
-   HEADER
+   THEME TOGGLE BUTTON
    ============================================================ */
-header {
-  text-align: center;
-  padding: 3rem 1rem 1.5rem;
-  position: relative;
-}
-
-.logo {
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 10vw, 6rem);
-  letter-spacing: 0.2em;
-  color: var(--text);
-  line-height: 1;
-}
-
-.logo-bracket {
-  color: var(--accent-yellow);
-  text-shadow: var(--glow-yellow);
-}
-
-.tagline {
+.theme-toggle {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-top: 0.5rem;
-}
-
-/* ============================================================
-   HOME — GAME SELECT
-   ============================================================ */
-.game-select {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 900px;
-  margin: 3rem auto;
-  padding: 0 2rem;
-}
-
-.game-card {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s;
-  cursor: pointer;
-}
-
-.game-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-#card-connect4::before    { background: radial-gradient(circle at 50% 0%, rgba(255,45,85,0.15), transparent 70%); }
-#card-noughts::before     { background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.15), transparent 70%); }
-#card-hangman::before     { background: radial-gradient(circle at 50% 0%, rgba(48,209,88,0.15), transparent 70%); }
-#card-battleships::before { background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.12), transparent 70%); }
-
-.game-card:hover { transform: translateY(-4px); }
-#card-connect4:hover    { border-color: var(--accent-red);    box-shadow: var(--glow-red); }
-#card-noughts:hover     { border-color: var(--accent-blue);   box-shadow: var(--glow-blue); }
-#card-hangman:hover     { border-color: var(--accent-green);  box-shadow: 0 0 20px rgba(48,209,88,0.5); }
-#card-battleships:hover { border-color: var(--accent-blue);   box-shadow: var(--glow-blue); }
-.game-card:hover::before { opacity: 1; }
-
-.card-number {
-  position: absolute;
-  top: 1rem;
-  right: 1.25rem;
-  font-family: var(--font-display);
-  font-size: 4rem;
-  color: var(--border);
-  line-height: 1;
-  z-index: 0;
-}
-
-.card-preview {
-  height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-
-/* Mini Connect 4 preview */
-.mini-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 32px);
-  gap: 6px;
-}
-.mc {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-}
-.mc.r { background: var(--accent-red); box-shadow: var(--glow-red); }
-.mc.y { background: var(--accent-yellow); box-shadow: var(--glow-yellow); }
-
-/* Mini TTT preview */
-.mini-ttt {
-  display: grid;
-  grid-template-columns: repeat(3, 44px);
-  gap: 4px;
-}
-.mini-ttt span {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  border: 1px solid var(--border);
-}
-.ttt-x { color: var(--accent-red); text-shadow: var(--glow-red); }
-.ttt-o { color: var(--accent-blue); text-shadow: var(--glow-blue); }
-
-.card-info {
-  padding: 1.25rem 1.5rem 1.5rem;
-  border-top: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
-}
-
-.card-info h2 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
-}
-
-.card-info p {
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  margin-bottom: 1rem;
-}
-
-.play-btn {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  color: var(--accent-yellow);
-}
-
-#card-noughts .play-btn { color: var(--accent-blue); }
-
-/* Mini sea preview for Battleships */
-.mini-sea {
-  display: grid;
-  grid-template-columns: repeat(4, 28px);
-  gap: 5px;
-}
-.ms {
-  width: 28px; height: 28px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-.ms.ship { background: #1c3a5e; border-color: var(--accent-blue); }
-.ms.hit  { background: var(--accent-red); border-color: var(--accent-red); box-shadow: var(--glow-red); }
-.ms.miss { background: var(--surface2); border-color: var(--text-dim); position: relative; }
-.ms.miss::after { content: '·'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem; line-height: 1; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  text-align: center;
-  padding: 2rem 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--text-dim);
+  font-size: 0.62rem;
   letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
-footer a { color: var(--text-dim); text-decoration: underline; }
-footer a:hover { color: var(--text); }
+.theme-toggle:hover {
+  border-color: var(--accent-yellow);
+  color: var(--accent-yellow);
+}
+[data-theme="light"] .theme-toggle:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
 
 /* ============================================================
    SHARED GAME PAGE STYLES
@@ -285,9 +152,7 @@ footer a:hover { color: var(--text); }
 }
 .back-btn:hover { color: var(--text); }
 
-.game-title-bar {
-  text-align: center;
-}
+.game-title-bar { text-align: center; }
 .game-title-bar h1 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 5vw, 2.8rem);
@@ -301,11 +166,15 @@ footer a:hover { color: var(--text); }
   text-transform: uppercase;
 }
 
-/* Mode selector */
-.mode-selector {
+/* header right cluster: toggle + mode buttons */
+.header-right {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
+
+/* Mode selector */
+.mode-selector { display: flex; gap: 0.5rem; }
 .mode-btn {
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -319,7 +188,6 @@ footer a:hover { color: var(--text); }
 }
 .mode-btn:hover, .mode-btn.active {
   background: var(--surface2);
-  color: var(--text);
   border-color: var(--accent-yellow);
   color: var(--accent-yellow);
 }
@@ -348,7 +216,7 @@ footer a:hover { color: var(--text); }
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
+  50%       { opacity: 0.2; }
 }
 
 /* Reset button */
@@ -389,9 +257,9 @@ footer a:hover { color: var(--text); }
   font-family: var(--font-display);
   letter-spacing: 0.1em;
 }
-.score-p1 .score-value { color: var(--accent-red); }
+.score-p1   .score-value { color: var(--accent-red); }
 .score-draw .score-value { color: var(--text-dim); }
-.score-p2 .score-value { color: var(--accent-yellow); }
+.score-p2   .score-value { color: var(--accent-yellow); }
 
 /* ============================================================
    CONNECT 4
@@ -403,13 +271,8 @@ footer a:hover { color: var(--text); }
   align-items: center;
   padding: 1rem 2rem 2rem;
 }
+.c4-board-wrapper { position: relative; margin: 0.5rem 0; }
 
-.c4-board-wrapper {
-  position: relative;
-  margin: 0.5rem 0;
-}
-
-/* Column hover indicators */
 .c4-hints {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -417,11 +280,7 @@ footer a:hover { color: var(--text); }
   margin-bottom: 4px;
   padding: 0 6px;
 }
-.c4-hint {
-  height: 14px;
-  border-radius: 2px;
-  transition: background 0.15s;
-}
+.c4-hint { height: 14px; border-radius: 2px; transition: background 0.15s; }
 
 .c4-board {
   background: var(--surface2);
@@ -431,7 +290,6 @@ footer a:hover { color: var(--text); }
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
 }
-
 .c4-cell {
   width: clamp(38px, 8vw, 62px);
   height: clamp(38px, 8vw, 62px);
@@ -442,7 +300,6 @@ footer a:hover { color: var(--text); }
   position: relative;
   overflow: hidden;
 }
-
 .c4-cell.p1 {
   background: var(--accent-red);
   border-color: var(--accent-red);
@@ -453,19 +310,15 @@ footer a:hover { color: var(--text); }
   border-color: var(--accent-yellow);
   box-shadow: var(--glow-yellow), inset 0 -4px 8px rgba(0,0,0,0.3);
 }
-.c4-cell.win-cell {
-  animation: pulse-win 0.6s ease infinite alternate;
-}
+.c4-cell.win-cell { animation: pulse-win 0.6s ease infinite alternate; }
 @keyframes pulse-win {
   from { filter: brightness(1); }
-  to { filter: brightness(1.4); }
+  to   { filter: brightness(1.4); }
 }
-.c4-cell.drop-anim {
-  animation: dropIn 0.25s ease-out;
-}
+.c4-cell.drop-anim { animation: dropIn 0.25s ease-out; }
 @keyframes dropIn {
   from { transform: scaleY(0); transform-origin: top; }
-  to { transform: scaleY(1); }
+  to   { transform: scaleY(1); }
 }
 
 /* ============================================================
@@ -478,7 +331,6 @@ footer a:hover { color: var(--text); }
   align-items: center;
   padding: 1rem 2rem 2rem;
 }
-
 .ttt-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -487,7 +339,6 @@ footer a:hover { color: var(--text); }
   border: 2px solid var(--border);
   padding: 6px;
 }
-
 .ttt-cell {
   width: clamp(80px, 22vw, 130px);
   height: clamp(80px, 22vw, 130px);
@@ -502,31 +353,15 @@ footer a:hover { color: var(--text); }
   user-select: none;
   position: relative;
 }
-
-.ttt-cell:hover:not(.taken) {
-  background: var(--surface2);
-}
-
-.ttt-cell .mark {
-  transition: transform 0.15s, opacity 0.15s;
-  transform: scale(0);
-  opacity: 0;
-}
-.ttt-cell .mark.placed {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.ttt-cell.x-cell .mark { color: var(--accent-red); text-shadow: var(--glow-red); }
+.ttt-cell:hover:not(.taken) { background: var(--surface2); }
+.ttt-cell .mark { transition: transform 0.15s, opacity 0.15s; transform: scale(0); opacity: 0; }
+.ttt-cell .mark.placed { transform: scale(1); opacity: 1; }
+.ttt-cell.x-cell .mark { color: var(--accent-red);  text-shadow: var(--glow-red); }
 .ttt-cell.o-cell .mark { color: var(--accent-blue); text-shadow: var(--glow-blue); }
-
-.ttt-cell.win-cell {
-  background: var(--surface2);
-  animation: ttt-pulse 0.5s ease infinite alternate;
-}
+.ttt-cell.win-cell { background: var(--surface2); animation: ttt-pulse 0.5s ease infinite alternate; }
 @keyframes ttt-pulse {
   from { background: var(--surface2); }
-  to { background: var(--border); }
+  to   { background: var(--border); }
 }
 
 /* Player indicators */
@@ -547,25 +382,20 @@ footer a:hover { color: var(--text); }
   border: 1px solid transparent;
   transition: all 0.2s;
 }
-.player-ind.active-player {
-  border-color: currentColor;
-  color: var(--text);
-}
-.player-ind.p1-ind.active-player { color: var(--accent-red); border-color: var(--accent-red); }
+.player-ind.active-player { border-color: currentColor; color: var(--text); }
+.player-ind.p1-ind.active-player { color: var(--accent-red);    border-color: var(--accent-red); }
 .player-ind.p2-ind.active-player { color: var(--accent-yellow); border-color: var(--accent-yellow); }
-.player-ind-mark {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-}
-
-/* TTT score - override color for p2 */
+.player-ind-mark { font-family: var(--font-display); font-size: 1.2rem; }
 .ttt-container .score-p2 .score-value { color: var(--accent-blue); }
 .ttt-container .player-ind.p2-ind.active-player { color: var(--accent-blue); border-color: var(--accent-blue); }
 
-/* Responsive */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 500px) {
   .game-header { padding: 1rem; flex-direction: column; align-items: flex-start; }
   .game-title-bar { align-self: center; }
   .c4-board, .ttt-board { gap: 4px; padding: 4px; }
   .c4-hints { gap: 4px; }
+  .header-right { flex-wrap: wrap; justify-content: flex-end; }
 }

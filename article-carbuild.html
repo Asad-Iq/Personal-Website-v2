@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Build — Asad Iqbal</title>
+  <link rel="stylesheet" href="main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    .article-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 4rem) 2rem 6rem;
+    }
+    .article-back {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+      transition: color var(--transition);
+    }
+    .article-back:hover { color: var(--red); }
+    .article-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .article-title {
+      font-family: var(--font-disp);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      letter-spacing: 0.03em;
+      line-height: 1.05;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+    .article-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .article-meta i { margin-right: 0.4rem; color: var(--red); }
+    .article-body {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      line-height: 1.9;
+      color: var(--text-mid);
+    }
+    .article-body h2 {
+      font-family: var(--font-disp);
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin: 2.5rem 0 1rem;
+    }
+    .article-body p { margin-bottom: 1.4rem; }
+    .article-body em { color: var(--text); font-style: italic; }
+    .article-body strong { color: var(--text); font-weight: 600; }
+    .article-body ul {
+      margin: 0 0 1.4rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .article-body ul li { color: var(--text-mid); }
+    .article-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+    .article-footer-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    .article-footer-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      transition: color var(--transition);
+    }
+    .article-footer-nav a:hover { color: var(--red); }
+    /* placeholder note styling */
+    .article-placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-left: 3px solid var(--red);
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-logo">
+    <a href="index.html" style="color:inherit">Asad Iqbal<span class="nav-dot">.</span></a>
+  </div>
+  <nav class="nav-links">
+    <a href="index.html#home">home</a>
+    <a href="index.html#writing">writing</a>
+    <a href="index.html#contact">contact</a>
+  </nav>
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <i class="fas fa-sun" id="theme-icon"></i>
+    </button>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="index.html#home"    onclick="closeMobileNav()">home</a>
+  <a href="index.html#writing" onclick="closeMobileNav()">writing</a>
+  <a href="index.html#contact" onclick="closeMobileNav()">contact</a>
+</div>
+
+<div class="article-wrap">
+  <a href="index.html#writing" class="article-back">← all posts</a>
+
+  <span class="article-tag">Car Build</span>
+  <h1 class="article-title">Building a [Your Car]: Where it all started</h1>
+
+  <div class="article-meta">
+    <span><i class="fas fa-calendar-alt"></i>[Date]</span>
+    <span><i class="fas fa-clock"></i>5 min read</span>
+    <span><i class="fas fa-user"></i>Asad Iqbal</span>
+  </div>
+
+  <div class="article-body">
+    <div class="article-placeholder">
+      ✏️ Replace everything below with your actual article. The structure, headings and
+      formatting are already set up — just write your content in the paragraphs and sections below.
+    </div>
+
+    <p>
+      <em>Replace this opening paragraph with a hook — the moment you first saw the car, why it caught your eye, or the feeling that made you commit to the project.</em>
+    </p>
+
+    <p>
+      Every build starts somewhere. Mine started with [describe where you found the car — a classified ad, a mate's garage, a random car park]. At the time I knew it needed work, but I had no idea quite how deep the rabbit hole went.
+    </p>
+
+    <h2>Why this car</h2>
+    <p>
+      [Explain your reasoning here — the model, why you chose it over alternatives, what drew you to it technically or emotionally. Is it the engine, the chassis dynamics, the rarity, the community around it?]
+    </p>
+
+    <h2>The state it arrived in</h2>
+    <p>
+      [Walk through the condition when you got it. What was good, what was bad, what was a surprise. Photos go well here — add an image tag if you have one: <code>&lt;img src="your-photo.jpg" class="photo-img" style="position:relative;height:auto;"&gt;</code>]
+    </p>
+
+    <h2>The plan</h2>
+    <p>
+      The goal isn't perfection — it's [describe your vision: daily driver, track weapon, show car, something else]. The priorities in order are:
+    </p>
+    <ul>
+      <li>[Priority 1 — e.g. get it mechanically sound]</li>
+      <li>[Priority 2 — e.g. sort the bodywork]</li>
+      <li>[Priority 3 — e.g. handling and suspension]</li>
+      <li>[Priority 4 — e.g. power mods]</li>
+    </ul>
+
+    <hr class="article-divider">
+
+    <p>
+      That's the beginning. Follow along for the next update where I'll cover [what's coming in the next post].
+    </p>
+  </div>
+
+  <div class="article-footer-nav">
+    <a href="index.html#writing">← back to writing</a>
+    <a href="article-website.html">next post: Building this website →</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-name">Asad Iqbal<span class="nav-dot">.</span></span>
+    <span class="footer-copy">© <span id="year"></span> — Built &amp; designed by Asad Iqbal</span>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+const root = document.documentElement;
+const themeIcon = document.getElementById("theme-icon");
+function applyTheme(t) { root.setAttribute("data-theme",t); localStorage.setItem("theme",t); themeIcon.className = t==="light"?"fas fa-moon":"fas fa-sun"; }
+applyTheme(localStorage.getItem("theme")||(window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));
+document.getElementById("theme-toggle").addEventListener("click",()=>applyTheme(root.getAttribute("data-theme")==="light"?"dark":"light"));
+document.getElementById("hamburger").addEventListener("click",()=>{document.getElementById("hamburger").classList.toggle("open");document.getElementById("mobile-nav").classList.toggle("open");});
+function closeMobileNav(){document.getElementById("hamburger").classList.remove("open");document.getElementById("mobile-nav").classList.remove("open");}
+</script>
+</body>
+</html>

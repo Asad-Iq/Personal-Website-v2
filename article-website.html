@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Building this website — Asad Iqbal</title>
+  <link rel="stylesheet" href="main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    .article-wrap { max-width: 720px; margin: 0 auto; padding: calc(var(--nav-h) + 4rem) 2rem 6rem; }
+    .article-back { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; color: var(--text-dim); display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 2.5rem; transition: color var(--transition); }
+    .article-back:hover { color: var(--red); }
+    .article-tag { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: block; }
+    .article-title { font-family: var(--font-disp); font-size: clamp(2.5rem, 6vw, 4.5rem); letter-spacing: 0.03em; line-height: 1.05; margin-bottom: 1.25rem; color: var(--text); }
+    .article-meta { display: flex; gap: 1.5rem; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .article-meta i { margin-right: 0.4rem; color: var(--red); }
+    .article-body { font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.9; color: var(--text-mid); }
+    .article-body h2 { font-family: var(--font-disp); font-size: 2rem; letter-spacing: 0.05em; color: var(--text); margin: 2.5rem 0 1rem; }
+    .article-body p { margin-bottom: 1.4rem; }
+    .article-body em { color: var(--text); font-style: italic; }
+    .article-body strong { color: var(--text); font-weight: 600; }
+    .article-body ul { margin: 0 0 1.4rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
+    .article-body ul li { color: var(--text-mid); }
+    .code-block { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--red); padding: 1rem 1.25rem; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--text-mid); overflow-x: auto; margin: 1.5rem 0; white-space: pre; }
+    .article-divider { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .article-footer-nav { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+    .article-footer-nav a { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--text-dim); transition: color var(--transition); }
+    .article-footer-nav a:hover { color: var(--red); }
+  </style>
+</head>
+<body>
+
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-logo"><a href="index.html" style="color:inherit">Asad Iqbal<span class="nav-dot">.</span></a></div>
+  <nav class="nav-links">
+    <a href="index.html#home">home</a>
+    <a href="index.html#writing">writing</a>
+    <a href="index.html#contact">contact</a>
+  </nav>
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"><i class="fas fa-sun" id="theme-icon"></i></button>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="index.html#home" onclick="closeMobileNav()">home</a>
+  <a href="index.html#writing" onclick="closeMobileNav()">writing</a>
+  <a href="index.html#contact" onclick="closeMobileNav()">contact</a>
+</div>
+
+<div class="article-wrap">
+  <a href="index.html#writing" class="article-back">← all posts</a>
+
+  <span class="article-tag">Tech</span>
+  <h1 class="article-title">Building this website from scratch</h1>
+
+  <div class="article-meta">
+    <span><i class="fas fa-calendar-alt"></i>[Date]</span>
+    <span><i class="fas fa-clock"></i>4 min read</span>
+    <span><i class="fas fa-user"></i>Asad Iqbal</span>
+  </div>
+
+  <div class="article-body">
+    <p>
+      I built this site with plain HTML, CSS and JavaScript — no frameworks, no build tools, no npm. Just files in a folder. That was a deliberate choice, and I think it was the right one.
+    </p>
+
+    <h2>Why not React, or Next, or…</h2>
+    <p>
+      The honest answer is that for a personal portfolio, the overhead isn't worth it. A React app for a site with six sections and a contact form is like using a sledgehammer to hang a picture. Vanilla HTML is fast, readable, and deploys to GitHub Pages in one push.
+    </p>
+    <p>
+      The slightly less honest answer is that I find raw DOM manipulation more satisfying. When something works, you know <em>exactly</em> why it works.
+    </p>
+
+    <h2>The particle canvas</h2>
+    <p>
+      The thing most people ask about is the particle image in the hero section. The idea is simple — sample pixel colours from a source image, spawn a particle at each dark pixel, and animate them back to their base positions when the mouse moves away.
+    </p>
+    <div class="code-block">// Sample pixels from source image
+ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+for (let y = 0; y &lt; canvas.height; y += 4) {
+  for (let x = 0; x &lt; canvas.width; x += 4) {
+    const i = (y * canvas.width + x) * 4;
+    const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+    if (brightness &lt; 210) particles.push(new Particle(x, y, ...));
+  }
+}</div>
+    <p>
+      The repulsion on hover is just: find distance to mouse, if inside a radius apply a force pushing the particle away, otherwise ease it back to its base position at 6% per frame.
+    </p>
+
+    <h2>The games</h2>
+    <p>
+      Each game — Connect 4, Noughts & Crosses, Hangman, Battleships — is a self-contained HTML file with its own CSS and JavaScript. The Connect 4 and Noughts & Crosses AIs use minimax with alpha-beta pruning, which sounds impressive but is really just exhaustive search with early termination when a branch can't improve the best known outcome.
+    </p>
+    <p>
+      Battleships uses a checkerboard shot pattern for the search phase (more efficient than random because ships are at least 2 cells long) and switches to targeted adjacent-cell hunting after a hit.
+    </p>
+
+    <h2>What I'd do differently</h2>
+    <ul>
+      <li>CSS custom properties from day one — I added them midway and it was messy</li>
+      <li>A consistent naming convention for classes before writing any HTML</li>
+      <li>Mobile design first — desktop-first CSS always needs more responsive overrides</li>
+    </ul>
+
+    <hr class="article-divider">
+    <p>The source is on <a href="https://github.com/asad-iq" style="color:var(--red)">GitHub</a> if you want to poke around.</p>
+  </div>
+
+  <div class="article-footer-nav">
+    <a href="article-carbuild.html">← car build</a>
+    <a href="article-physics.html">next: physics project →</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-name">Asad Iqbal<span class="nav-dot">.</span></span>
+    <span class="footer-copy">© <span id="year"></span></span>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+const root=document.documentElement,themeIcon=document.getElementById("theme-icon");
+function applyTheme(t){root.setAttribute("data-theme",t);localStorage.setItem("theme",t);themeIcon.className=t==="light"?"fas fa-moon":"fas fa-sun";}
+applyTheme(localStorage.getItem("theme")||(window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));
+document.getElementById("theme-toggle").addEventListener("click",()=>applyTheme(root.getAttribute("data-theme")==="light"?"dark":"light"));
+document.getElementById("hamburger").addEventListener("click",()=>{document.getElementById("hamburger").classList.toggle("open");document.getElementById("mobile-nav").classList.toggle("open");});
+function closeMobileNav(){document.getElementById("hamburger").classList.remove("open");document.getElementById("mobile-nav").classList.remove("open");}
+</script>
+</body>
+</html>

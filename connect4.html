@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connect 4 — ARCADE</title>
@@ -12,15 +21,18 @@
 
   <div class="game-page">
     <div class="game-header">
-      <a href="../index.html" class="back-btn">← BACK</a>
+      <a href="index.html#games" class="back-btn">← BACK</a>
       <div class="game-title-bar">
         <h1 style="color: var(--accent-red); text-shadow: var(--glow-red);">CONNECT 4</h1>
         <p class="subtitle">drop · connect · win</p>
       </div>
+      <div class="header-right">
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☀</button>
       <div class="mode-selector">
         <button class="mode-btn active" id="btn-vs-cpu" onclick="setMode('cpu')">VS CPU</button>
         <button class="mode-btn" id="btn-vs-p2" onclick="setMode('2p')">2 PLAYER</button>
       </div>
+    </div>
     </div>
 
     <div class="scoreboard">
@@ -343,6 +355,40 @@
     function resetGame() { init(); }
 
     init();
-  </script>
+  
+  // ── Theme: read from localStorage (set by main site), cycle on click
+  (function(){
+    var root = document.documentElement;
+    var btn  = document.getElementById("theme-toggle");
+    var THEMES = ["dark","light","auto"];
+    var ICONS  = {dark:"☾", light:"☀", auto:"◑"};
+
+    function applyTheme(t){
+      var eff = t==="auto"
+        ? (window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark")
+        : t;
+      root.setAttribute("data-theme", eff);
+      localStorage.setItem("theme", t);
+      btn.textContent = ICONS[t];
+      btn.title = t + " mode";
+    }
+
+    btn.addEventListener("click", function(){
+      var cur = localStorage.getItem("theme")||"dark";
+      var next = THEMES[(THEMES.indexOf(cur)+1)%THEMES.length];
+      applyTheme(next);
+    });
+
+    // Re-apply on load to set button icon correctly
+    var cur = localStorage.getItem("theme")||"auto";
+    btn.textContent = ICONS[cur]||"☀";
+    btn.title = cur + " mode";
+
+    window.matchMedia("(prefers-color-scheme:light)").addEventListener("change",function(){
+      if(localStorage.getItem("theme")==="auto") applyTheme("auto");
+    });
+  })();
+
+</script>
 </body>
 </html>

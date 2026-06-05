@@ -47,6 +47,47 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .reveal.visible { opacity: 1; transform: none; }
 
+/* ── Light mode variables ── */
+[data-theme="light"] {
+  --bg:        #f5f2ee;
+  --bg2:       #ede9e4;
+  --bg3:       #e6e1db;
+  --surface:   #dedad4;
+  --border:    #c8c3bc;
+  --text:      #1a1612;
+  --text-dim:  #888;
+  --text-mid:  #555;
+  --red-dim:   rgba(194,0,0,0.1);
+}
+[data-theme="light"] .navbar.scrolled {
+  background: rgba(245,242,238,0.92);
+}
+[data-theme="light"] .mobile-nav {
+  background: rgba(245,242,238,0.97);
+}
+
+/* ── Theme toggle button ── */
+.theme-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+.theme-toggle i { font-size: 0.75rem; }
+
 /* ============================================================
    NAVBAR
    ============================================================ */

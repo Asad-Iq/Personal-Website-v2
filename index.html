@@ -38,6 +38,12 @@
     <a href="https://instagram.com/asad.ai_/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
   </div>
 
+  <!-- Theme toggle: cycles dark → light → auto -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+    <i id="theme-icon" class="fas fa-moon"></i>
+    <span id="theme-label">dark</span>
+  </button>
+
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -62,7 +68,7 @@
            It will sit inside this box — the particle canvas runs behind it.
            <img src="your-photo.jpg" alt="Asad Iqbal" class="hero-photo"> -->
       <canvas id="particle-canvas"></canvas>
-      <img id="source-image" src="out_17766365224651.png" crossorigin="anonymous" hidden>
+      <img id="source-image" src="Screenshot_20260605-232318.png" crossorigin="anonymous" hidden>
     </div>
   </div>
 
@@ -108,11 +114,7 @@ The common thread through all of it is a love of learning, building, and explori
     </div>
     <div class="about-image-col">
       <div class="about-img-frame">
-        <!-- Replace src with your own photo -->
-        <div class="about-img-placeholder">
-          <i class="fas fa-user"></i>
-          <p><img src="Snapchat-2028678647.jpg" alt="description" class="photo-img"></p>
-        </div>
+        <img src="Snapchat-2028678647.jpg" alt="Asad Iqbal" class="photo-img">
       </div>
       <div class="about-stats">
         <div class="stat">
@@ -215,49 +217,39 @@ The common thread through all of it is a love of learning, building, and explori
 
   <div class="photo-grid">
     <div class="photo-card tall">
-      <div class="photo-placeholder">
-        <i class="fas fa-camera"></i>
-        <span>Between Buildings</span>
-        <span class="photo-meta"><img src="Screenshot_20260605-220114.png" alt="description" class="photo-img"></span>
-      </div>
+      <img src="Screenshot_20260605-220114.png" alt="Between Buildings" class="photo-img">
       <div class="photo-overlay">
         <h4>Between Buildings</h4>
         <p>A serene sunset over Glasgow.</p>
       </div>
     </div>
     <div class="photo-card">
-      <div class="photo-placeholder">
-        <i class="fas fa-camera"></i>
-        <span>Landscape — Golden Hour</span>
-        <span class="photo-meta"><img src="PXL_20260524_200105887.RAW-02.ORIGINAL~2.jpg" alt="description" class="photo-img"></span>
-      </div>
+      <img src="PXL_20260524_200105887.RAW-02.ORIGINAL~2.jpg" alt="Golden Hour" class="photo-img">
       <div class="photo-overlay">
         <h4>Golden Hour</h4>
         <p>Sunset over the Yorkshire Dales.</p>
       </div>
     </div>
     <div class="photo-card">
-      <div class="photo-placeholder">
-        <i class="fas fa-camera"></i>
-        <span>Docks at Dusk</span>
-        <span class="photo-meta"><img src="PXL_20260317_185117969~2.jpg" alt="description" class="photo-img"></span>
-      </div>
+      <img src="PXL_20260317_185117969~2.jpg" alt="Docks at Dusk" class="photo-img">
       <div class="photo-overlay">
         <h4>Docks at Dusk</h4>
         <p>Dusk at Royal Albert Docks.</p>
       </div>
     </div>
     <div class="photo-card wide">
-      <div class="photo-placeholder">
-        <i class="fas fa-camera"></i>
-        <span>Coastal Capture</span>
-        <span class="photo-meta"><img src="Screenshot_20260605-221249.png" alt="description" class="photo-img"></span>
-      </div>
+      <img src="Screenshot_20260605-221249.png" alt="Coastal Capture" class="photo-img">
       <div class="photo-overlay">
         <h4>Coastal Capture</h4>
         <p>Candid capture at the coast.</p>
       </div>
     </div>
+  </div>
+
+  <div style="text-align:center; margin-top: 2.5rem;">
+    <a href="portfolio.html" class="btn-ghost">
+      <i class="fas fa-images" style="margin-right:0.5rem"></i>View full portfolio
+    </a>
   </div>
 </section>
 
@@ -276,7 +268,7 @@ The common thread through all of it is a love of learning, building, and explori
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 5 min read</span>
       </div>
-      <a href="#" class="writing-link">Read more →</a>
+      <a href="article-carbuild.html" class="writing-link">Read more →</a>
     </article>
 
     <article class="writing-card">
@@ -287,7 +279,7 @@ The common thread through all of it is a love of learning, building, and explori
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 4 min read</span>
       </div>
-      <a href="#" class="writing-link">Read more →</a>
+      <a href="article-website.html" class="writing-link">Read more →</a>
     </article>
 
     <article class="writing-card">
@@ -298,7 +290,7 @@ The common thread through all of it is a love of learning, building, and explori
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 7 min read</span>
       </div>
-      <a href="#" class="writing-link">Read more →</a>
+      <a href="article-physics.html" class="writing-link">Read more →</a>
     </article>
   </div>
 </section>
@@ -388,7 +380,7 @@ The common thread through all of it is a love of learning, building, and explori
 <section id="contact" class="section section-dark">
   <div class="section-label">06 / contact</div>
   <h2 class="section-title">Get in touch</h2>
-  <p class="section-intro">Whether you have a question, an opportunity, or just want to talk cars or code — I'm all ears.</p>
+  <p class="section-intro">Whether you have a question, an opportunity, or just want to talk — I'm all ears.</p>
 
   <div class="contact-layout">
     <div class="contact-info">
@@ -462,6 +454,42 @@ function closeMobileNav() {
   mobileNav.classList.remove("open");
 }
 
+// ── Theme toggle: dark → light → auto, persisted in localStorage
+const root      = document.documentElement;
+const themeBtn  = document.getElementById("theme-toggle");
+const themeIcon = document.getElementById("theme-icon");
+const themeLabel= document.getElementById("theme-label");
+
+const THEMES = ["dark", "light", "auto"];
+const ICONS  = { dark: "fas fa-moon", light: "fas fa-sun", auto: "fas fa-circle-half-stroke" };
+
+function applyTheme(t) {
+  // "auto" reads system preference
+  const effective = t === "auto"
+    ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+    : t;
+  root.setAttribute("data-theme", effective);
+  localStorage.setItem("theme", t);
+  themeIcon.className  = ICONS[t];
+  themeLabel.textContent = t;
+}
+
+function cycleTheme() {
+  const current = localStorage.getItem("theme") || "dark";
+  const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+  applyTheme(next);
+}
+
+// Init on load
+const savedTheme = localStorage.getItem("theme") || "auto";
+applyTheme(savedTheme);
+themeBtn.addEventListener("click", cycleTheme);
+
+// Also respond if system theme changes while "auto" is active
+window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
+  if (localStorage.getItem("theme") === "auto") applyTheme("auto");
+});
+
 // ── Experience tabs
 document.querySelectorAll(".exp-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -513,9 +541,8 @@ function sendEmail() {
   const canvas  = document.getElementById("particle-canvas");
   const ctx     = canvas.getContext("2d");
   const image   = document.getElementById("source-image");
-  const frame   = canvas.parentElement; // .hero-photo-frame
+  const frame   = canvas.parentElement;
 
-  // Size the canvas backing buffer to match the CSS frame size
   function syncCanvasSize() {
     const w = frame.clientWidth  || 420;
     const h = frame.clientHeight || 420;

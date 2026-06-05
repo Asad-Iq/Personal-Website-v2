@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hangman — ARCADE</title>
@@ -216,7 +225,7 @@
 
   <div class="game-page">
     <div class="game-header">
-      <a href="../index.html" class="back-btn">← BACK</a>
+      <a href="index.html#games" class="back-btn">← BACK</a>
       <div class="game-title-bar">
         <h1 style="color:var(--accent-green);text-shadow:0 0 20px rgba(48,209,88,0.5)">HANGMAN</h1>
         <p class="subtitle">guess · survive · win</p>
@@ -487,6 +496,40 @@
     });
 
     newGame();
-  </script>
+  
+  // ── Theme: read from localStorage (set by main site), cycle on click
+  (function(){
+    var root = document.documentElement;
+    var btn  = document.getElementById("theme-toggle");
+    var THEMES = ["dark","light","auto"];
+    var ICONS  = {dark:"☾", light:"☀", auto:"◑"};
+
+    function applyTheme(t){
+      var eff = t==="auto"
+        ? (window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark")
+        : t;
+      root.setAttribute("data-theme", eff);
+      localStorage.setItem("theme", t);
+      btn.textContent = ICONS[t];
+      btn.title = t + " mode";
+    }
+
+    btn.addEventListener("click", function(){
+      var cur = localStorage.getItem("theme")||"dark";
+      var next = THEMES[(THEMES.indexOf(cur)+1)%THEMES.length];
+      applyTheme(next);
+    });
+
+    // Re-apply on load to set button icon correctly
+    var cur = localStorage.getItem("theme")||"auto";
+    btn.textContent = ICONS[cur]||"☀";
+    btn.title = cur + " mode";
+
+    window.matchMedia("(prefers-color-scheme:light)").addEventListener("change",function(){
+      if(localStorage.getItem("theme")==="auto") applyTheme("auto");
+    });
+  })();
+
+</script>
 </body>
 </html>

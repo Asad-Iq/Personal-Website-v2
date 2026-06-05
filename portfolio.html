@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photography — Asad Iqbal</title>
+  <link rel="stylesheet" href="main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    /* ── Portfolio-specific overrides ── */
+    body { min-height: 100vh; }
+
+    .portfolio-header {
+      padding: calc(var(--nav-h) + 4rem) 2.5rem 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .portfolio-header .back-link {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      transition: color var(--transition);
+    }
+    .portfolio-header .back-link:hover { color: var(--red); }
+
+    .portfolio-header h1 {
+      font-family: var(--font-disp);
+      font-size: clamp(3rem, 7vw, 6rem);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+    .portfolio-header p {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+    }
+
+    /* Filter tabs */
+    .portfolio-filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 0 2.5rem 2.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-dim);
+    }
+
+    /* Masonry grid */
+    .masonry-grid {
+      columns: 3;
+      column-gap: 0.75rem;
+      padding: 0 2.5rem 5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) { .masonry-grid { columns: 2; } }
+    @media (max-width: 500px) { .masonry-grid { columns: 1; padding: 0 1rem 3rem; } }
+
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 0.75rem;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: block;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .masonry-item:hover { border-color: var(--red); box-shadow: var(--red-glow); }
+
+    .masonry-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .masonry-item:hover img { transform: scale(1.03); }
+
+    .masonry-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      padding: 2rem 1rem 1rem;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .masonry-item:hover .masonry-caption { transform: none; }
+    .masonry-caption h4 {
+      font-family: var(--font-disp);
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+    .masonry-caption p {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.6);
+    }
+    .masonry-caption .cap-tag {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      position: relative;
+      max-width: 1000px;
+      max-height: 90vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lightbox img {
+      max-width: 100%;
+      max-height: 78vh;
+      object-fit: contain;
+      display: block;
+      border: 1px solid var(--border);
+    }
+    .lightbox-meta {
+      text-align: center;
+    }
+    .lightbox-meta h4 {
+      font-family: var(--font-disp);
+      font-size: 1.5rem;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+    .lightbox-meta p {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+    .lightbox-close {
+      position: fixed;
+      top: 1.5rem; right: 1.5rem;
+      font-size: 1.5rem;
+      color: var(--text-dim);
+      background: none;
+      border: 1px solid var(--border);
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .lightbox-close:hover { color: var(--text); border-color: var(--red); }
+    .lightbox-nav {
+      position: fixed;
+      top: 50%; transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      background: rgba(13,13,13,0.8);
+      border: 1px solid var(--border);
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .lightbox-nav:hover { color: var(--text); border-color: var(--red); }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    /* Hidden filter state */
+    .masonry-item.hidden { display: none; }
+
+    /* Add-photo instruction box (shown when no photos in a category) */
+    .add-photo-hint {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--border);
+      padding: 3rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lb-close">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lb-prev">‹</button>
+  <button class="lightbox-nav lightbox-next" id="lb-next">›</button>
+  <div class="lightbox-inner">
+    <img id="lb-img" src="" alt="">
+    <div class="lightbox-meta">
+      <h4 id="lb-title"></h4>
+      <p id="lb-desc"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Navbar (simplified, no particle canvas needed) -->
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-logo">
+    <a href="index.html" style="color:inherit">Asad Iqbal<span class="nav-dot">.</span></a>
+  </div>
+  <nav class="nav-links">
+    <a href="index.html#home">home</a>
+    <a href="index.html#about">about</a>
+    <a href="index.html#photography">photography</a>
+    <a href="index.html#writing">writing</a>
+    <a href="index.html#games">games</a>
+    <a href="index.html#contact">contact</a>
+  </nav>
+  <!-- Theme toggle inherited from main site via shared CSS var, toggled by JS -->
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+      <i class="fas fa-sun" id="theme-icon"></i>
+    </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav">
+  <a href="index.html#home"        onclick="closeMobileNav()">home</a>
+  <a href="index.html#about"       onclick="closeMobileNav()">about</a>
+  <a href="index.html#photography" onclick="closeMobileNav()">photography</a>
+  <a href="index.html#writing"     onclick="closeMobileNav()">writing</a>
+  <a href="index.html#games"       onclick="closeMobileNav()">games</a>
+  <a href="index.html#contact"     onclick="closeMobileNav()">contact</a>
+</div>
+
+<div class="portfolio-header">
+  <a href="index.html#photography" class="back-link">← back to site</a>
+  <h1>Photography</h1>
+  <p>all shots · unfiltered</p>
+</div>
+
+<!-- Filter tabs — add/remove categories to match your photos below -->
+<div class="portfolio-filters">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="landscape">Landscape</button>
+  <button class="filter-btn" data-filter="urban">Urban</button>
+  <button class="filter-btn" data-filter="travel">Travel</button>
+  <button class="filter-btn" data-filter="cars">Cars</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+  HOW TO ADD PHOTOS:
+  Copy one of the .masonry-item blocks below and fill in:
+    data-category  → must match one of the filter-btn data-filter values
+    data-title     → shown in the lightbox
+    data-desc      → caption shown in lightbox (optional)
+    src            → path to your image file
+
+  To add a new CATEGORY: add a filter-btn above AND use that
+  data-filter value on your masonry-item.
+═══════════════════════════════════════════════════ -->
+<div class="masonry-grid" id="masonry-grid">
+
+  <!-- PHOTO 1 -->
+  <div class="masonry-item" data-category="urban" data-title="Between Buildings" data-desc="A serene sunset over Glasgow city centre.">
+    <img src="Screenshot_20260605-220114.png" alt="Between Buildings">
+    <div class="masonry-caption">
+      <span class="cap-tag">Urban</span>
+      <h4>Between Buildings</h4>
+      <p>Glasgow</p>
+    </div>
+  </div>
+
+  <!-- PHOTO 2 -->
+  <div class="masonry-item" data-category="landscape" data-title="Golden Hour" data-desc="Sunset over the Yorkshire Dales.">
+    <img src="PXL_20260524_200105887.RAW-02.ORIGINAL~2.jpg" alt="Golden Hour">
+    <div class="masonry-caption">
+      <span class="cap-tag">Landscape</span>
+      <h4>Golden Hour</h4>
+      <p>Yorkshire Dales</p>
+    </div>
+  </div>
+
+  <!-- PHOTO 3 -->
+  <div class="masonry-item" data-category="urban" data-title="Docks at Dusk" data-desc="St Patrick's Day at Royal Albert Dock, Liverpool.">
+    <img src="PXL_20260317_185117969~2.jpg" alt="Docks at Dusk">
+    <div class="masonry-caption">
+      <span class="cap-tag">Urban</span>
+      <h4>Docks at Dusk</h4>
+      <p>Royal Albert Dock, Liverpool</p>
+    </div>
+  </div>
+
+  <!-- PHOTO 4 -->
+  <div class="masonry-item" data-category="travel" data-title="Coastal Capture" data-desc="Candid capture at the coast.">
+    <img src="Screenshot_20260605-221249.png" alt="Coastal Capture">
+    <div class="masonry-caption">
+      <span class="cap-tag">Travel</span>
+      <h4>Coastal Capture</h4>
+      <p>The coast</p>
+    </div>
+  </div>
+
+  <!--
+    ══ ADD MORE PHOTOS BELOW — just copy this block and fill it in ══
+
+  <div class="masonry-item" data-category="cars" data-title="Your Title" data-desc="Your description.">
+    <img src="your-image.jpg" alt="Your Title">
+    <div class="masonry-caption">
+      <span class="cap-tag">Cars</span>
+      <h4>Your Title</h4>
+      <p>Location or note</p>
+    </div>
+  </div>
+
+  -->
+
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-name">Asad Iqbal<span class="nav-dot">.</span></span>
+    <span class="footer-copy">© <span id="year"></span> — Built &amp; designed by Asad Iqbal</span>
+    <a href="index.html#photography" style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.1em;">← back to site</a>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// ── Theme (mirrors main site) ──
+const root = document.documentElement;
+const themeBtn  = document.getElementById("theme-toggle");
+const themeIcon = document.getElementById("theme-icon");
+function applyTheme(t) {
+  root.setAttribute("data-theme", t);
+  localStorage.setItem("theme", t);
+  themeIcon.className = t === "light" ? "fas fa-moon" : "fas fa-sun";
+}
+const saved = localStorage.getItem("theme") ||
+  (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+applyTheme(saved);
+themeBtn.addEventListener("click", () => applyTheme(root.getAttribute("data-theme") === "light" ? "dark" : "light"));
+
+// ── Hamburger ──
+document.getElementById("hamburger").addEventListener("click", () => {
+  document.getElementById("hamburger").classList.toggle("open");
+  document.getElementById("mobile-nav").classList.toggle("open");
+});
+function closeMobileNav() {
+  document.getElementById("hamburger").classList.remove("open");
+  document.getElementById("mobile-nav").classList.remove("open");
+}
+
+// ── Filter tabs ──
+const items = Array.from(document.querySelectorAll(".masonry-item"));
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const f = btn.dataset.filter;
+    items.forEach(item => {
+      item.classList.toggle("hidden", f !== "all" && item.dataset.category !== f);
+    });
+  });
+});
+
+// ── Lightbox ──
+const lb      = document.getElementById("lightbox");
+const lbImg   = document.getElementById("lb-img");
+const lbTitle = document.getElementById("lb-title");
+const lbDesc  = document.getElementById("lb-desc");
+let currentIdx = 0;
+let visibleItems = [];
+
+function openLightbox(idx) {
+  visibleItems = items.filter(i => !i.classList.contains("hidden"));
+  currentIdx = idx;
+  showLightboxItem(currentIdx);
+  lb.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function showLightboxItem(idx) {
+  const item = visibleItems[idx];
+  lbImg.src   = item.querySelector("img").src;
+  lbImg.alt   = item.dataset.title;
+  lbTitle.textContent = item.dataset.title;
+  lbDesc.textContent  = item.dataset.desc || "";
+}
+function closeLightbox() {
+  lb.classList.remove("open");
+  document.body.style.overflow = "";
+  lbImg.src = "";
+}
+
+items.forEach((item, i) => {
+  item.addEventListener("click", () => {
+    visibleItems = items.filter(it => !it.classList.contains("hidden"));
+    const visIdx = visibleItems.indexOf(item);
+    openLightbox(visIdx);
+  });
+});
+
+document.getElementById("lb-close").addEventListener("click", closeLightbox);
+document.getElementById("lb-prev").addEventListener("click", () => {
+  currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length;
+  showLightboxItem(currentIdx);
+});
+document.getElementById("lb-next").addEventListener("click", () => {
+  currentIdx = (currentIdx + 1) % visibleItems.length;
+  showLightboxItem(currentIdx);
+});
+lb.addEventListener("click", e => { if (e.target === lb) closeLightbox(); });
+document.addEventListener("keydown", e => {
+  if (!lb.classList.contains("open")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") { currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length; showLightboxItem(currentIdx); }
+  if (e.key === "ArrowRight") { currentIdx = (currentIdx + 1) % visibleItems.length; showLightboxItem(currentIdx); }
+});
+</script>
+</body>
+</html>
