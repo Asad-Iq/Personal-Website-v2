@@ -25,6 +25,13 @@
   </script>
 </head>
 <body>
+  <div id="popup" class="popup">
+  <div class="popup-content">
+    <h2>Site Under Development</h2>
+    <p>Hi there! This site is still under development. I'm working to update the experience section, upload more photography and publish my writing. Thanks for your patience!</p>
+    <button onclick="closePopup()">Got it</button>
+  </div>
+</div>
 <!-- ═══════════════ NAVBAR ═══════════════ -->
 <header class="navbar" id="navbar">
   <div class="nav-logo">
@@ -270,9 +277,9 @@ The common thread through all of it is a love of learning, building, and explori
 
   <div class="writing-grid">
     <article class="writing-card featured">
-      <div class="writing-tag">Car Build</div>
-      <h3>Building a [Your Car Here]: Where it all started</h3>
-      <p>Replace this with your first post about the car project. Walk through why you chose this car, what the plan is, and where you're starting from. A good origin story sets the tone for everything that follows.</p>
+      <div class="writing-tag">Blah blah blah blah blah blah blah blah blah blah</div>
+      <h3>Blah blah blah blah blah blah</h3>
+      <p>Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah.</p>
       <div class="writing-meta">
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 5 min read</span>
@@ -282,8 +289,8 @@ The common thread through all of it is a love of learning, building, and explori
 
     <article class="writing-card">
       <div class="writing-tag">Tech</div>
-      <h3>Building this website from scratch</h3>
-      <p>A walkthrough of how I built this site — the particle canvas, the games section, the email integration and what I learned along the way.</p>
+      <h3>Blah blah blah blah blah</h3>
+      <p>Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah.</p>
       <div class="writing-meta">
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 4 min read</span>
@@ -292,9 +299,9 @@ The common thread through all of it is a love of learning, building, and explori
     </article>
 
     <article class="writing-card">
-      <div class="writing-tag">Physics</div>
-      <h3>[Your dissertation or project topic]</h3>
-      <p>A summary of my final-year research project. Replace with what you actually worked on — the problem, the method, and the result.</p>
+      <div class="writing-tag">Blah blah blah blah blah blah blah blah blah blah</div>
+      <h3>Blah blah blah blah blah blah blah blah blah blah</h3>
+      <p>Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blahblah.</p>
       <div class="writing-meta">
         <span><i class="fas fa-calendar-alt"></i> [Date]</span>
         <span><i class="fas fa-clock"></i> 7 min read</span>
@@ -632,6 +639,14 @@ function sendEmail() {
   }
 })();
 </script>
+<script>
+  window.onload = function () {
+    document.getElementById("popup").style.display = "flex";
+  };
 
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+  }
+</script>
 </body>
 </html>
