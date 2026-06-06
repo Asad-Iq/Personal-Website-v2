@@ -435,3 +435,10 @@ body {
   color: var(--accent-green);
   background: var(--surface2);
 }
+/* Fix mobile centering for Noughts & Crosses */
+.ttt-container {
+  justify-content: center; /* This centers everything vertically */
+}
+.ttt-board {
+  margin: 0 auto; /* Forces the grid to the middle of the container */
+}
