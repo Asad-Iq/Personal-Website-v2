@@ -985,7 +985,9 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 }
 
 .popup-content {
-  background: white;
+  background: var(--surface); /* Changes from white to your theme's surface color */
+  color: var(--text);         /* Ensures text matches the theme */
+  border: 1px solid var(--border); /* Adds a nice subtle border to match your cards */
   padding: 25px;
   border-radius: 12px;
   text-align: center;
@@ -996,8 +998,19 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   margin-top: 15px;
   padding: 10px 15px;
   border: none;
-  background: red; /* your accent colour */
-  color: white;
+  background: var(--red); /* Uses your exact arcade red variable */
+  color: #fff;            /* Keeps the button text white so it pops */
   cursor: pointer;
   border-radius: 8px;
+  font-family: var(--font-mono); /* Matches your site's button font */
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all var(--transition);
+}
+
+.popup-content button:hover {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  box-shadow: var(--red-glow);
 }

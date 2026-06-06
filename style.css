@@ -45,7 +45,8 @@
 [data-theme="light"] .ttt-cell     { background: var(--surface);  }
 [data-theme="light"] .ttt-cell:hover:not(.taken) { background: var(--surface2); }
 [data-theme="light"] .ttt-cell.win-cell { background: var(--surface2); }
-[data-theme="light"] @keyframes ttt-pulse {
+
+@keyframes ttt-pulse-light {
   from { background: var(--surface2); }
   to   { background: var(--border);   }
 }
@@ -137,6 +138,7 @@ body {
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
   gap: 1rem;
+  position: relative;
 }
 
 .back-btn {
@@ -398,4 +400,38 @@ body {
   .c4-board, .ttt-board { gap: 4px; padding: 4px; }
   .c4-hints { gap: 4px; }
   .header-right { flex-wrap: wrap; justify-content: flex-end; }
+}
+/* Center the game headers perfectly */
+.game-header .back-btn {
+  flex: 1; /* Forces the left side to grow */
+}
+
+.game-header .header-right {
+  flex: 1; /* Forces the right side to grow equally */
+  display: flex;
+  justify-content: flex-end; /* Keeps the buttons shoved to the right edge */
+}
+
+.game-header .game-title-bar {
+  flex: 0 1 auto; /* Tells the title to only take up the space it actually needs */
+  text-align: center;
+}
+/* Medium Button - Orange on Hover and Active */
+#diff-medium:hover, #diff-medium.active {
+  border-color: #ff9500; /* Vibrant retro orange */
+  color: #ff9500;
+  background: var(--surface2);
+}
+
+/* Hard Button - Red on Hover and Active */
+#diff-hard:hover, #diff-hard.active {
+  border-color: var(--accent-red); /* Uses your existing arcade red variable */
+  color: var(--accent-red);
+  background: var(--surface2);
+}
+/* Easy Button - Green on Hover and Active */
+#diff-easy:hover, #diff-easy.active {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--surface2);
 }

@@ -224,19 +224,22 @@
   <div class="noise"></div>
 
   <div class="game-page">
-    <div class="game-header">
-      <a href="index.html#games" class="back-btn">← BACK</a>
-      <div class="game-title-bar">
-        <h1 style="color:var(--accent-green);text-shadow:0 0 20px rgba(48,209,88,0.5)">HANGMAN</h1>
-        <p class="subtitle">guess · survive · win</p>
-      </div>
-      <div class="diff-selector">
-        <button class="diff-btn active" id="diff-easy"   onclick="setDiff('easy')">EASY</button>
-        <button class="diff-btn"        id="diff-medium" onclick="setDiff('medium')">MEDIUM</button>
-        <button class="diff-btn"        id="diff-hard"   onclick="setDiff('hard')">HARD</button>
-      </div>
+   <div class="game-header">
+  <a href="index.html#games" class="back-btn">← BACK</a>
+  
+  <div class="game-title-bar">
+    <h1 style="color:var(--accent-green);text-shadow:0 0 20px rgba(48,209,88,0.5)">HANGMAN</h1>
+    <p class="subtitle">guess · survive · win</p>
+  </div>
+  
+  <div class="header-right">
+    <div class="diff-selector">
+      <button class="diff-btn active" id="diff-easy" onclick="setDiff('easy')">EASY</button>
+      <button class="diff-btn" id="diff-medium" onclick="setDiff('medium')">MEDIUM</button>
+      <button class="diff-btn" id="diff-hard" onclick="setDiff('hard')">HARD</button>
     </div>
-
+  </div>
+</div>
     <div class="hm-score-row" style="padding:0.75rem 0 0;">
       <div class="hm-score-wins">
         <span class="hm-score-val" id="sc-wins">0</span>
