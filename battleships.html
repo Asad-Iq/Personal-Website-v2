@@ -264,6 +264,7 @@
         <button class="mode-btn active" id="btn-vs-cpu" onclick="setMode('cpu')">VS CPU</button>
         <button class="mode-btn"        id="btn-vs-p2"  onclick="setMode('2p')">2 PLAYER</button>
       </div>
+      </div>
     </div>
 
     <div class="status-bar">
@@ -392,14 +393,9 @@
       setStatus('Place your ships — select a ship then click the grid', 'var(--accent-blue)');
     }
 
-    function showPhase(id) {
-      ['phase-place','phase-battle'].forEach(p => document.getElementById(p).classList.remove('active'));
-      document.getElementById('phase-handover').classList.remove('active');
-      if (id === 'handover') {
-        document.getElementById('phase-handover').classList.add('active');
-      } else {
-        document.getElementById(id).classList.add('active');
-      }
+   function showPhase(id) {
+      ['phase-place','phase-battle','phase-handover'].forEach(p => document.getElementById(p).classList.remove('active'));
+      document.getElementById('phase-' + id).classList.add('active');
     }
 
     // ============================================================
@@ -596,11 +592,13 @@
       } else if (next === 'battle-p2') {
         // Switch to P2's attack turn
         currentAttacker = 1;
+        showPhase('battle'); // ADDED THIS LINE
         renderBattleBoards();
         setStatus("Player 2's turn — fire!", 'var(--accent-yellow)');
         document.getElementById('status-dot').style.background = 'var(--accent-yellow)';
       } else if (next === 'battle-p1') {
         currentAttacker = 0;
+        showPhase('battle'); // ADDED THIS LINE
         renderBattleBoards();
         setStatus("Player 1's turn — fire!", 'var(--accent-blue)');
         document.getElementById('status-dot').style.background = 'var(--accent-blue)';

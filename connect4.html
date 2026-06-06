@@ -111,18 +111,19 @@
         hintsEl.appendChild(hint);
       }
 
-      // Also make board cells clickable via column
-      document.getElementById('c4-board').addEventListener('click', e => {
+     // Also make board cells clickable via column
+      const c4board = document.getElementById('c4-board');
+      c4board.onclick = e => {
         const col = e.target.dataset.col;
         if (col !== undefined) handleClick(parseInt(col));
-      });
-      document.getElementById('c4-board').addEventListener('mouseover', e => {
+      };
+      c4board.onmouseover = e => {
         const col = e.target.dataset.col;
         if (col !== undefined) highlightCol(parseInt(col), true);
-      });
-      document.getElementById('c4-board').addEventListener('mouseout', () => {
+      };
+      c4board.onmouseout = () => {
         for (let c = 0; c < COLS; c++) highlightCol(c, false);
-      });
+      };
     }
 
     function highlightCol(col, on) {
