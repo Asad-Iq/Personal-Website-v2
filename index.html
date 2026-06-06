@@ -53,6 +53,7 @@
     <a href="https://github.com/asad-iq" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
     <a href="https://linkedin.com/in/asad-i-79b5a4239/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
     <a href="https://instagram.com/asad.ai_/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="https://open.spotify.com/user/313bojjrnmauwcmti5zsjgmrueyy?si=a090e88bbfc9419f" target="_blank" aria-label="Spotify"><i class="fab fa-spotify"></i></a>
   </div>
 
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
@@ -245,28 +246,28 @@ The common thread through all of it is a love of learning, building, and explori
 
   <div class="photo-grid">
     <div class="photo-card tall">
-      <img src="Screenshot_20260605-220114.png" alt="Between Buildings" class="photo-img">
+      <img src="Photography/Screenshot_20260605-220114.png" alt="Between Buildings" class="photo-img">
       <div class="photo-overlay">
         <h4>Between Buildings</h4>
         <p>A serene sunset over Glasgow.</p>
       </div>
     </div>
     <div class="photo-card">
-      <img src="PXL_20260524_200105887.RAW-02.ORIGINAL~2.jpg" alt="Golden Hour" class="photo-img">
+      <img src="Photography/PXL_20260524_200105887.RAW-02.ORIGINAL~2.jpg" alt="Golden Hour" class="photo-img">
       <div class="photo-overlay">
         <h4>Golden Hour</h4>
         <p>Sunset over the Yorkshire Dales.</p>
       </div>
     </div>
     <div class="photo-card">
-      <img src="PXL_20260317_185117969~2.jpg" alt="Docks at Dusk" class="photo-img">
+      <img src="Photography/PXL_20260317_185117969~2.jpg" alt="Docks at Dusk" class="photo-img">
       <div class="photo-overlay">
         <h4>Docks at Dusk</h4>
         <p>Dusk at Royal Albert Docks.</p>
       </div>
     </div>
     <div class="photo-card wide">
-      <img src="Screenshot_20260605-221249.png" alt="Coastal Capture" class="photo-img">
+      <img src="Photography/Screenshot_20260605-221249.png" alt="Coastal Capture" class="photo-img">
       <div class="photo-overlay">
         <h4>Coastal Capture</h4>
         <p>Candid capture at the coast.</p>
@@ -466,9 +467,36 @@ function type() {
 setTimeout(type, 400);
 
 // ── Navbar scroll style
-window.addEventListener("scroll", () => {
+// ── Navbar scroll style + active section highlighting
+const sections = document.querySelectorAll("section[id]");
+const navLinks  = document.querySelectorAll(".nav-links a");
+
+function setActiveLink() {
+  // Navbar background on scroll
   document.getElementById("navbar").classList.toggle("scrolled", window.scrollY > 40);
-});
+
+  // Find which section is currently in view
+  let current = "";
+  sections.forEach(section => {
+    const sectionTop    = section.offsetTop - 100; // offset for fixed navbar
+    const sectionBottom = sectionTop + section.offsetHeight;
+    if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
+      current = section.getAttribute("id");
+    }
+  });
+
+  // Highlight the matching nav link
+  navLinks.forEach(link => {
+    link.classList.remove("active-section");
+    if (link.getAttribute("href") === "#" + current) {
+      link.classList.add("active-section");
+    }
+  });
+}
+
+window.addEventListener("scroll", setActiveLink);
+// Run once on load so the correct link is highlighted immediately
+setActiveLink();
 
 // ── Hamburger menu
 const hamburger = document.getElementById("hamburger");
