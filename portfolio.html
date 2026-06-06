@@ -165,18 +165,21 @@
     .lightbox-meta {
       text-align: center;
     }
-    .lightbox-meta h4 {
-      font-family: var(--font-disp);
-      font-size: 1.5rem;
-      letter-spacing: 0.06em;
-      color: var(--text);
-    }
-    .lightbox-meta p {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--text-dim);
-    }
+    /* Update these rules in your <style> block */
+.lightbox-meta h4 {
+  font-family: var(--font-disp);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  color: #ffffff; /* Force white for maximum contrast against dark overlay */
+}
+
+.lightbox-meta p {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: #dddddd; /* Use a very light grey for the subtitle */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+}
     .lightbox-close {
       position: fixed;
       top: 1.5rem; right: 1.5rem;
