@@ -640,12 +640,13 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   font-size: 1.3rem;
   letter-spacing: 0.05em;
   margin-bottom: 0.2rem;
+  color: #ffffff
 }
 .photo-overlay p {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.1em;
-  color: var(--text-mid);
+  color: rgba(255,255,255,0.7);
 }
 
 /* ============================================================
@@ -948,7 +949,12 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   .exp-layout { grid-template-columns: 1fr; }
   .exp-sidebar { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
   .exp-btn { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; padding: 0.9rem 1rem; }
-  .exp-btn.active { border-left: none; border-bottom-color: var(--red); }
+  .exp-btn.active {
+  border-left: none !important;
+  border-bottom: 3px solid var(--red) !important;
+  color: var(--text);
+  background: var(--surface);
+}
 
   .contact-layout { grid-template-columns: 1fr; gap: 2rem; }
   .form-row { grid-template-columns: 1fr; }
