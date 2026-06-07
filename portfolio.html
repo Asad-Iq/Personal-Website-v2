@@ -500,5 +500,18 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") { currentIdx = (currentIdx + 1) % visibleItems.length; showLightboxItem(currentIdx); }
 });
 </script>
+<script>
+  // Add this to portfolio.html to highlight the current section
+  document.addEventListener("DOMContentLoaded", function() {
+    // Find the link that points to index.html#photography
+    const navLinks = document.querySelectorAll('.nav-links a');
+    navLinks.forEach(link => {
+      // If the link is for photography, highlight it
+      if (link.getAttribute('href') === 'index.html#photography') {
+        link.classList.add('active-section');
+      }
+    });
+  });
+</script>
 </body>
 </html>
