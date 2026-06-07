@@ -471,12 +471,43 @@ The common thread through all of it is a love of learning, building, and explori
 document.getElementById("year").textContent = new Date().getFullYear();
 
 // ── Typing effect
-const text = "Hey, I'm Asad.";
+const phrases = [
+  "Hey, I'm Asad.",
+  "Hey, I'm Asad. I build things.",
+  "Hey, I'm Asad. I study Physics.",
+  "Hey, I'm Asad. I chase stories.",
+  "Hey, I'm Asad. I tinker.",
+];
 const el = document.getElementById("typing-text");
-let idx = 0;
+let phraseIndex = 0;
+let charIndex = 0;
+let deleting = false;
+
 function type() {
-  if (idx < text.length) { el.textContent += text.charAt(idx++); setTimeout(type, 60); }
+  const current = phrases[phraseIndex];
+
+  if (!deleting) {
+    el.textContent = current.slice(0, charIndex + 1);
+    charIndex++;
+    if (charIndex === current.length) {
+      deleting = true;
+      setTimeout(type, 2000);
+      return;
+    }
+    setTimeout(type, 60);
+  } else {
+    el.textContent = current.slice(0, charIndex - 1);
+    charIndex--;
+    if (charIndex === "Hey, I'm Asad.".length) {
+      deleting = false;
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      setTimeout(type, 400);
+      return;
+    }
+    setTimeout(type, 30);
+  }
 }
+
 setTimeout(type, 400);
 
 // ── Navbar scroll style
