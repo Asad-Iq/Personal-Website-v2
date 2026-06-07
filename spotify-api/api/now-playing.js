@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://asadiqbal.site');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
