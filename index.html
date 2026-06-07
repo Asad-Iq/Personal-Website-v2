@@ -705,7 +705,7 @@ function sendEmail() {
 <script>
   async function loadSpotify() {
     try {
-      const res = await fetch('https://spotify-api-swart-rho.vercel.app/api/now-playing');
+      const res = await fetch('https://spotify-api-gules-theta.vercel.app/api/now-playing');
       const data = await res.json();
       document.getElementById('spotify-art').src = data.albumArt;
       document.getElementById('spotify-title').textContent = data.title;
