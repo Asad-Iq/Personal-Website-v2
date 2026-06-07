@@ -1014,3 +1014,53 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   border: 1px solid var(--red);
   box-shadow: var(--red-glow);
 }
+#spotify-widget {
+  margin: 1.5rem 0;
+}
+#spotify-widget a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-decoration: none;
+  max-width: 320px;
+  transition: background 0.2s;
+}
+#spotify-widget a:hover {
+  background: rgba(29, 185, 84, 0.1);
+  border-color: #1DB954;
+}
+#spotify-art {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+#spotify-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+#spotify-status {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1DB954;
+}
+#spotify-title {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#spotify-artist {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
