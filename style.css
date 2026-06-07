@@ -437,8 +437,9 @@ body {
 }
 /* Fix mobile centering for Noughts & Crosses */
 .ttt-container {
-  justify-content: center; /* This centers everything vertically */
+  justify-content: center;
+  align-items: center;
 }
 .ttt-board {
-  margin: 0 auto; /* Forces the grid to the middle of the container */
+  margin: 0 auto;
 }
