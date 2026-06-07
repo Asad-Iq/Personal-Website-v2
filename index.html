@@ -479,6 +479,7 @@ const phrases = [
   "Hey, I'm Asad. I tinker.",
 ];
 const el = document.getElementById("typing-text");
+const base = "Hey, I'm Asad.";
 let phraseIndex = 0;
 let charIndex = 0;
 let deleting = false;
@@ -487,8 +488,8 @@ function type() {
   const current = phrases[phraseIndex];
 
   if (!deleting) {
-    el.textContent = current.slice(0, charIndex + 1);
     charIndex++;
+    el.textContent = current.slice(0, charIndex);
     if (charIndex === current.length) {
       deleting = true;
       setTimeout(type, 2000);
@@ -496,12 +497,12 @@ function type() {
     }
     setTimeout(type, 60);
   } else {
-    el.textContent = current.slice(0, charIndex - 1);
     charIndex--;
-    if (charIndex === "Hey, I'm Asad.".length) {
+    el.textContent = current.slice(0, charIndex);
+    if (charIndex === base.length) {
       deleting = false;
       phraseIndex = (phraseIndex + 1) % phrases.length;
-      setTimeout(type, 400);
+      setTimeout(type, 500);
       return;
     }
     setTimeout(type, 30);
