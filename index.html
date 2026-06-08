@@ -23,6 +23,8 @@
   <script>
   emailjs.init("444iXREWTMyGI15lX");
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
   <div id="popup" class="popup">
@@ -123,45 +125,139 @@
 <!-- ═══════════════ ABOUT ═══════════════ -->
 <section id="about" class="section">
   <div class="section-label">01 / about</div>
-  <div class="about-grid">
-    <div class="about-text">
-      <h2 class="section-title">A bit about me</h2>
-      <p class="lead">
-        I'm Asad — a Physics student with a passion for understanding how things work, whether that's the laws of the universe or the engineering of mechanical systems.
-      </p>
-      <p>There's always something on the workbench. Some weeks it's a coding project, some weeks it's a car on the driveway — usually because I convinced myself it would be a quick job. That's pretty much been the constant.
-When I'm not tinkering, I'm usually chasing stories across borders, lost in a topic for longer than i intended, buried in a good book or at the piano. And on weekends, watching Arsenal systematically dismantle my will to live.
-The common thread through all of it is a love of learning, building, and exploring — whether that's a new place, a new idea, or a new challenge.
-        
-      </p>
-      <p>
-        Currently based in the Leeds, open to anything that involves solving hard problems with creative solutions!
-      </p>
-      <div class="about-tags">
-        <span>Coding</span><span>Creating</span><span>Composing</span>
-        <span>Gallivanting</span><span>Tinkering</span>
-      </div>
-    </div>
-    <div class="about-image-col">
-      <div class="about-img-frame">
-        <img src="Snapchat-2028678647.jpg" alt="Asad Iqbal" class="photo-img">
-      </div>
-      <div class="about-stats">
-        <div class="stat">
-          <span class="stat-num">3+</span>
-          <span class="stat-label">years coding</span>
+
+  <div class="full-carousel-wrapper reveal" id="about-carousel">
+    
+    <button class="slide-nav prev-nav" onclick="shiftSlide(-1)" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+    <button class="slide-nav next-nav" onclick="shiftSlide(1)" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+
+    <div class="slide-wrapper">
+      
+      <div class="a-slide active">
+        <div class="about-grid">
+          <div class="about-text">
+            <h2 class="section-title">A bit about me</h2>
+            <p class="lead">
+              I'm Asad — a Physics student with a passion for understanding how things work, whether that's the laws of the universe or the engineering of mechanical systems.
+            </p>
+            <p>There's always something on the workbench. Some weeks it's a coding project, some weeks it's a car on the driveway — usually because I convinced myself it would be a quick job. That's pretty much been the constant.
+            When I'm not tinkering, I'm usually chasing stories across borders, lost in a topic for longer than i intended, buried in a good book or at the piano. And on weekends, watching Arsenal systematically dismantle my will to live.
+            The common thread through all of it is a love of learning, building, and exploring — whether that's a new place, a new idea, or a new challenge.
+            </p>
+            <p>
+              Currently based in Leeds, open to anything that involves solving hard problems with creative solutions!
+            </p>
+            <div class="about-tags">
+              <span>Coding</span><span>Creating</span><span>Composing</span>
+              <span>Gallivanting</span><span>Tinkering</span>
+            </div>
+          </div>
+          <div class="about-image-col">
+            <div class="about-img-frame">
+              <img src="Snapchat-2028678647.jpg" alt="Asad Iqbal" class="photo-img">
+            </div>
+            <div class="about-stats">
+              <div class="stat">
+                <span class="stat-num">3+</span>
+                <span class="stat-label">years coding</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num">BSc</span>
+                <span class="stat-label">Physics</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num">∞</span>
+                <span class="stat-label">curiosity</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="stat">
-          <span class="stat-num">BSc</span>
-          <span class="stat-label">Physics</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">∞</span>
-          <span class="stat-label">curiosity</span>
+      </div>
+
+      <div class="a-slide">
+        <div class="interactive-full">
+          <div class="a-slide-header">
+            <span>01 / physics</span>
+            <h3>Orbital Mechanics</h3>
+          </div>
+          <div class="a-slide-content">
+            <canvas id="sim-canvas"></canvas>
+            <div class="sim-hint">Move cursor to shift mass.</div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="a-slide">
+        <div class="interactive-full">
+          <div class="a-slide-header">
+            <span>02 / atlas</span>
+            <h3>Places I've Been</h3>
+          </div>
+          <div class="a-slide-content">
+            <div id="map-svg-container"></div>
+            <div id="map-tooltip" class="map-tooltip"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="a-slide">
+        <div class="interactive-full">
+          <div class="a-slide-header">
+            <span>03 / library</span>
+            <h3>Current Shelf</h3>
+          </div>
+          <div class="a-slide-content book-content">
+            <div class="mini-bookshelf">
+  <!-- Original Books (Left to Right) -->
+  <div class="mini-book">
+    <span class="mb-status">Reading</span>
+    <h4>Classical Mechanics</h4>
+    <p>John R. Taylor</p>
   </div>
+  <div class="mini-book">
+    <h4>Jaguar XJ Series</h4>
+    <p>Brian Long</p>
+  </div>
+  <div class="mini-book">
+    <h4>Peugeot 108 Manual</h4>
+    <p>Haynes</p>
+  </div>
+  <div class="mini-book">
+    <h4>Dune</h4>
+    <p>Frank Herbert</p>
+  </div>
+
+  <!-- Leaning Books (Ordered left to right) -->
+  <div class="mini-book empty-book b-charcoal">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+  <div class="mini-book empty-book b-crimson leaning-1">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+  <div class="mini-book empty-book b-teal leaning-2">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+  <div class="mini-book empty-book b-olive leaning-3">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+  <div class="mini-book empty-book b-brown">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+  <div class="mini-book empty-book b-blue">
+    <h4>[ Title ]</h4>
+    <p>[ Author ]</p>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
 </section>
 
 <!-- ═══════════════ EXPERIENCE ═══════════════ -->
@@ -580,7 +676,7 @@ document.querySelectorAll(".exp-btn").forEach(btn => {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); } });
 }, { threshold: 0.1 });
-document.querySelectorAll(".section, .photo-card, .writing-card, .game-card-link, .stat").forEach(el => {
+document.querySelectorAll(".section, .photo-card, .writing-card, .game-card-link, .stat, .full-carousel-wrapper").forEach(el => {
   el.classList.add("reveal");
   observer.observe(el);
 });
@@ -692,6 +788,29 @@ function sendEmail() {
   }
 })();
 </script>
+// ── Smooth Scrolling for Navigation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const targetId = this.getAttribute('href');
+    
+    // Ignore empty links
+    if (targetId === '#' || targetId === '') return;
+    
+    const targetSection = document.querySelector(targetId);
+    if (targetSection) {
+      e.preventDefault(); 
+      
+      // Align the section to the top (your CSS will naturally offset the navbar)
+      targetSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start' 
+      });
+      
+      // Update the URL cleanly
+      history.pushState(null, null, targetId);
+    }
+  });
+});
 <script>
   window.onload = function () {
     document.getElementById("popup").style.display = "flex";
@@ -717,6 +836,165 @@ function sendEmail() {
   }
   loadSpotify();
   setInterval(loadSpotify, 30000);
+</script>
+<script>
+// ════ ABOUT FULL CAROUSEL LOGIC ════
+(function() {
+  const slides = document.querySelectorAll('.a-slide');
+  if (slides.length === 0) return;
+  let currentIndex = 0;
+
+  window.shiftSlide = function(step) {
+    slides[currentIndex].classList.remove('active');
+    currentIndex = (currentIndex + step + slides.length) % slides.length;
+    slides[currentIndex].classList.add('active');
+    
+    // 🔧 FIX 1: Force the physics canvas to recalculate its width instantly when viewed
+    if (currentIndex === 1) {
+      setTimeout(resizeSim, 50);
+    }
+
+    // Trigger map render if moving to map slide
+    if (currentIndex === 2 && !window.mapRendered) {
+      setTimeout(renderMap, 50);
+      window.mapRendered = true;
+    }
+  };
+
+  // --- Slide 1: Physics Sim ---
+  const simCanvas = document.getElementById('sim-canvas');
+  if (!simCanvas) return;
+  const simCtx = simCanvas.getContext('2d');
+  let simW, simH;
+  let simParticles = [];
+  let simMouse = { x: -1000, y: -1000, mass: 3000 };
+  let simActive = true;
+
+  function resizeSim() {
+    const rect = simCanvas.parentElement.getBoundingClientRect();
+    // Locks the internal drawing resolution to the exact CSS display size
+    simW = simCanvas.width = rect.width || 1000;
+    simH = simCanvas.height = rect.height || 500;
+    
+    // Recenter the default gravity well
+    if (simMouse.x === -1000) { simMouse.x = simW / 2; simMouse.y = simH / 2; }
+  }
+  
+  simCanvas.addEventListener('mousemove', (e) => {
+    const rect = simCanvas.getBoundingClientRect();
+    // 🔧 FIX 2: Calculate scale difference so the mouse perfectly aligns with gravity
+    const scaleX = simCanvas.width / rect.width;
+    const scaleY = simCanvas.height / rect.height;
+    simMouse.x = (e.clientX - rect.left) * scaleX;
+    simMouse.y = (e.clientY - rect.top) * scaleY;
+  });
+  
+  simCanvas.addEventListener('mousedown', (e) => {
+    const rect = simCanvas.getBoundingClientRect();
+    const scaleX = simCanvas.width / rect.width;
+    const scaleY = simCanvas.height / rect.height;
+    for(let i=0; i<3; i++) {
+      simParticles.push({
+        x: ((e.clientX - rect.left) * scaleX) + (Math.random()*20-10),
+        y: ((e.clientY - rect.top) * scaleY) + (Math.random()*20-10),
+        vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+        path: []
+      });
+    }
+  });
+
+  function initSim() {
+    resizeSim();
+    for(let i=0; i<75; i++) {
+      simParticles.push({
+        x: Math.random() * simW, y: Math.random() * simH,
+        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+        path: []
+      });
+    }
+    animateSim();
+  }
+
+  function animateSim() {
+    if(!simActive) return;
+    simCtx.fillStyle = 'rgba(13, 13, 13, 0.2)'; 
+    simCtx.fillRect(0, 0, simW, simH);
+    
+    simParticles.forEach(p => {
+      let dx = simMouse.x - p.x;
+      let dy = simMouse.y - p.y;
+      let distSq = dx*dx + dy*dy;
+      let dist = Math.sqrt(distSq);
+      let force = simMouse.mass / (distSq || 1); 
+      p.vx += force * (dx / dist);
+      p.vy += force * (dy / dist);
+      p.vx *= 0.99; p.vy *= 0.99;
+      p.x += p.vx; p.y += p.vy;
+
+      p.path.push({x: p.x, y: p.y});
+      if(p.path.length > 15) p.path.shift();
+
+      simCtx.fillStyle = '#f0ece6';
+      simCtx.beginPath(); simCtx.arc(p.x, p.y, 1.5, 0, Math.PI*2); simCtx.fill();
+      
+      if(p.path.length > 1) {
+        simCtx.beginPath();
+        simCtx.moveTo(p.path[0].x, p.path[0].y);
+        for(let i=1; i<p.path.length; i++) simCtx.lineTo(p.path[i].x, p.path[i].y);
+        simCtx.strokeStyle = 'rgba(194, 0, 0, 0.4)';
+        simCtx.lineWidth = 1; simCtx.stroke();
+      }
+    });
+    requestAnimationFrame(animateSim);
+  }
+
+  // --- Slide 2: Map ---
+  function renderMap() {
+    if (typeof d3 === 'undefined') return setTimeout(renderMap, 100);
+    const mContainer = d3.select("#map-svg-container");
+    const mWidth = 1000, mHeight = 500;
+
+    // 🔧 FIX 3: Force the SVG to expand to 100% of its container
+    const mSvg = mContainer.append("svg")
+        .attr("viewBox", `0 0 ${mWidth} ${mHeight}`)
+        .style("width", "100%")
+        .style("height", "100%");
+
+    const mProj = d3.geoMercator().scale(130).translate([mWidth / 2, mHeight / 1.5]);
+    const mPath = d3.geoPath().projection(mProj);
+    const mTooltip = d3.select("#map-tooltip");
+
+    const mMarkers = [
+      { name: "Leeds", desc: "Physics BSc.", coords: [-1.549, 53.800] },
+      { name: "Glasgow", desc: "City escapes.", coords: [-4.251, 55.864] },
+      { name: "Changsha", desc: "TEFL Training.", coords: [112.938, 28.228] }
+    ];
+
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(data => {
+      mSvg.append("g").selectAll("path").data(data.features).enter().append("path")
+         .attr("d", mPath).attr("class", "country");
+
+      mSvg.selectAll("circle").data(mMarkers).enter().append("circle")
+         .attr("cx", d => mProj(d.coords)[0])
+         .attr("cy", d => mProj(d.coords)[1])
+         .attr("r", 4).attr("class", "map-pin")
+         .on("mouseover", (event, d) => {
+           const rect = document.getElementById('map-svg-container').getBoundingClientRect();
+           mTooltip.style("opacity", 1).html(`<strong>${d.name}</strong>${d.desc}`)
+                   .style("left", (event.clientX - rect.left + 15) + "px")
+                   .style("top", (event.clientY - rect.top - 20) + "px");
+         })
+         .on("mouseout", () => mTooltip.style("opacity", 0));
+    });
+  }
+
+  // Ensure window resizing keeps it centered if they adjust their browser
+  window.addEventListener('resize', () => {
+    if (slides[1].classList.contains('active')) resizeSim();
+  });
+  
+  setTimeout(initSim, 100);
+})();
 </script>
 </body>
 </html>
