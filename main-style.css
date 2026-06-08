@@ -1358,7 +1358,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   transform: rotate(20deg);
   transform-origin: bottom left;
   margin-left: -3px;
-  margin-right: -10px;
+  margin-right: 1px;
   z-index: 3 !important;
 }
 .mini-book.leaning-2:hover {
@@ -1370,7 +1370,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   transform: rotate(28deg);
   transform-origin: bottom left;
   margin-left: -5px;
-  margin-right: 2px;
+  margin-right: 120px;
   z-index: 2 !important;
 }
 .mini-book.leaning-3:hover {
@@ -1403,3 +1403,20 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .b-olive    { height: 260px; flex-basis: 48px; background: linear-gradient(to right, #1f2116, #3d422a 15%, #2e331c 50%, #1f2116 85%, #0f120a); }
 .b-brown    { height: 330px; flex-basis: 85px; background: linear-gradient(to right, #2e1a0b, #523117 15%, #422610 50%, #2e1a0b 85%, #170d06); }
 .b-blue     { height: 200px; flex-basis: 40px; background: linear-gradient(to right, #0b0f1a, #18233b 15%, #11192a 50%, #0b0f1a 85%, #04060b); }
+.mini-book {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* Ensure the link wraps the book properly without breaking Flexbox */
+.mini-bookshelf a {
+  text-decoration: none;
+  display: block;
+  /* Maintain the flex-basis settings so they sit side-by-side */
+  flex: 0 0 auto;
+}
+
+/* Ensure the cursor indicates it's a link */
+.mini-bookshelf a:hover {
+  cursor: pointer;
+}
