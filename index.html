@@ -181,6 +181,21 @@
           </div>
           <div class="a-slide-content">
             <canvas id="cradle-canvas"></canvas>
+            <div class="cradle-controls">
+              <button data-drop="1">lift 1</button>
+              <button data-drop="2">lift 2</button>
+              <button data-drop="3">lift 3</button>
+              <button id="cradle-sound" class="cradle-sound" aria-label="Toggle sound"><i class="fas fa-volume-high"></i></button>
+            </div>
+            <div class="cradle-hud" id="cradle-hud">
+              <div class="hud-title">// readout</div>
+              <div class="hud-row"><span class="hud-k">KE</span><span class="hud-v" id="hud-ke">0.0</span><span class="hud-u">mJ</span></div>
+              <div class="hud-row"><span class="hud-k">‖p‖</span><span class="hud-v" id="hud-p">0.000</span><span class="hud-u">kg·m/s</span></div>
+              <div class="hud-row"><span class="hud-k">v·max</span><span class="hud-v" id="hud-v">0.00</span><span class="hud-u">m/s</span></div>
+              <div class="hud-row"><span class="hud-k">hits</span><span class="hud-v" id="hud-n">0</span><span class="hud-u"></span></div>
+              <div class="hud-energy"><div class="hud-energy-bar" id="hud-energy"></div></div>
+              <div class="hud-foot">energy conservation</div>
+            </div>
             <div class="sim-hint">Drag a ball · pull back · release</div>
           </div>
         </div>
@@ -886,24 +901,108 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   const cCtx = cradleCanvas.getContext('2d');
 
   const NC     = 5;      // number of balls
-  const PASSES = 15;     // collision resolution passes per frame
-  const DAMP   = 0.9998; // energy loss per frame
+  const PASSES = 16;     // collision resolution passes per frame
+  const DAMP   = 0.99985;// energy loss per frame
+  const GRAV   = 0.45;
 
-  let ncW, ncH, ncPendL, ncBallR;
+  let ncW, ncH, ncPendL, ncBallR, ncDPR = 1;
   let ncPivots  = [];
   let ncAngles  = new Array(NC).fill(0);
   let ncVels    = new Array(NC).fill(0);
+  let ncPrevSpd = new Array(NC).fill(0);
+  let ncTrails  = Array.from({ length: NC }, () => []);
+  let ncSparks  = [];
+  let ncRings   = [];
   let ncDragIdx = -1;
   let ncRunning = false;
+  let ncHits    = 0;
+  let ncE0      = 1;     // reference energy for the conservation bar
+  let ncHudTick = 0;
+
+  // Display-unit conversion (interprets the sim as a real desk cradle)
+  const PX2M = 0.0016, MASS = 0.1, FPS = 60;
+
+  // ── Web Audio: synthesized metallic click ────────────
+  let actx = null, ncMuted = false;
+  function ncAudioInit() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (actx && actx.state === 'suspended') actx.resume();
+  }
+  function ncClick(strength, idx) {
+    if (!actx || ncMuted) return;
+    const t   = actx.currentTime;
+    const vol = Math.min(0.55, 0.06 + strength * 0.95);
+    const base = 1650 + idx * 110 + Math.random() * 90;
+    // inharmonic metallic partials
+    [1, 1.46, 2.19, 2.92].forEach((mult, k) => {
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = k === 0 ? 'triangle' : 'sine';
+      o.frequency.value = base * mult;
+      const peak = vol * (k === 0 ? 1 : 0.32 / k);
+      g.gain.setValueAtTime(peak, t);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + 0.10 + 0.02 * k);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + 0.14);
+    });
+    // noise transient (the "tick")
+    const dur = 0.045, sr = actx.sampleRate;
+    const buf = actx.createBuffer(1, Math.floor(sr * dur), sr);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
+    const ns = actx.createBufferSource(); ns.buffer = buf;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = base * 1.3; bp.Q.value = 0.9;
+    const ng = actx.createGain(); ng.gain.value = vol * 0.7;
+    ns.connect(bp).connect(ng).connect(actx.destination);
+    ns.start(t); ns.stop(t + dur);
+  }
+
+  // ── Physics readout (sim-consistent energy, display-scaled stats) ──
+  const ncHud = {
+    ke: document.getElementById('hud-ke'),
+    p:  document.getElementById('hud-p'),
+    v:  document.getElementById('hud-v'),
+    n:  document.getElementById('hud-n'),
+    e:  document.getElementById('hud-energy')
+  };
+  function ncEnergy() {                          // conserved sim quantity (px²/frame²)
+    let E = 0;
+    for (let i = 0; i < NC; i++) {
+      const u = ncVels[i] * ncPendL;
+      E += 0.5 * u * u + GRAV * ncPendL * (1 - Math.cos(ncAngles[i]));
+    }
+    return E;
+  }
+  function ncUpdateHUD() {
+    if (!ncHud.ke) return;
+    let keMJ = 0, pSum = 0, vMax = 0;
+    for (let i = 0; i < NC; i++) {
+      const vMs = Math.abs(ncVels[i]) * ncPendL * FPS * PX2M;   // m/s
+      keMJ += 0.5 * MASS * vMs * vMs * 1000;                    // mJ
+      pSum += MASS * (ncVels[i] * ncPendL * FPS * PX2M);        // signed kg·m/s
+      if (vMs > vMax) vMax = vMs;
+    }
+    const E = ncEnergy();
+    if (E > ncE0) ncE0 = E;                                     // track peak (e.g. dragged further)
+    ncHud.ke.textContent = keMJ.toFixed(1);
+    ncHud.p.textContent  = Math.abs(pSum).toFixed(3);
+    ncHud.v.textContent  = vMax.toFixed(2);
+    ncHud.n.textContent  = ncHits;
+    ncHud.e.style.transform = 'scaleX(' + Math.max(0, Math.min(1, E / (ncE0 || 1))).toFixed(3) + ')';
+  }
 
   function ncResize() {
     const rect = cradleCanvas.parentElement.getBoundingClientRect();
-    ncW      = cradleCanvas.width  = rect.width  || 800;
-    ncH      = cradleCanvas.height = rect.height || 500;
-    ncPendL  = Math.min(ncH * 0.40, 180);
-    ncBallR  = Math.min(ncW * 0.028, 26);
+    ncW = rect.width  || 800;
+    ncH = rect.height || 500;
+    ncDPR = Math.min(window.devicePixelRatio || 1, 2);
+    cradleCanvas.width  = Math.round(ncW * ncDPR);
+    cradleCanvas.height = Math.round(ncH * ncDPR);
+    cCtx.setTransform(ncDPR, 0, 0, ncDPR, 0, 0);  // draw in CSS pixels, render retina-sharp
+    ncPendL = Math.min(ncH * 0.42, 190);
+    ncBallR = Math.min(ncW * 0.028, ncH * 0.075, 28);
     const totalW = NC * ncBallR * 2;
-    const cx = ncW / 2, py = ncH * 0.28;
+    const cx = ncW / 2, py = ncH * 0.26;
     ncPivots = Array.from({ length: NC }, (_, i) => ({
       x: cx - totalW / 2 + ncBallR + i * ncBallR * 2,
       y: py
@@ -912,9 +1011,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
   const ncBx = i => ncPivots[i].x + ncPendL * Math.sin(ncAngles[i]);
   const ncBy = i => ncPivots[i].y + ncPendL * Math.cos(ncAngles[i]);
+  const floorY = () => ncPivots[0].y + ncPendL + ncBallR * 1.35;
 
-  // Elastic collision propagation: forward-only passes are sufficient
-  // because the condition (vxi > vxi1) handles both left→right and right→left impacts.
+  // Elastic propagation: forward-only passes suffice because (vxi > vxi1)
+  // detects approach from either side.
   function ncResolve() {
     for (let pass = 0; pass < PASSES; pass++) {
       for (let i = 0; i < NC - 1; i++) {
@@ -923,11 +1023,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         if (xi + ncBallR > xi1 - ncBallR) {
           const vxi  = ncVels[i]     * ncPendL;
           const vxi1 = ncVels[i + 1] * ncPendL;
-          if (vxi > vxi1) {                       // approaching → elastic swap
+          if (vxi > vxi1) {
             ncVels[i]     = vxi1 / ncPendL;
             ncVels[i + 1] = vxi  / ncPendL;
           }
-          const ov = xi + ncBallR * 2 - xi1;     // positional separation
+          const ov = xi + ncBallR * 2 - xi1;
           if (ov > 0) {
             const half = ov * 0.5 / ncPendL;
             ncAngles[i]     -= half;
@@ -938,144 +1038,265 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
   }
 
+  // Chrome ball: clipped environment gradient + rim darkening + dual highlights
+  function ncBall(bx, by, r, alpha) {
+    cCtx.save();
+    cCtx.globalAlpha = alpha;
+    cCtx.beginPath();
+    cCtx.arc(bx, by, r, 0, Math.PI * 2);
+    cCtx.clip();
+
+    // Vertical "environment" reflection (sky → room → floor bounce)
+    const env = cCtx.createLinearGradient(bx, by - r, bx, by + r);
+    env.addColorStop(0.00, '#6f6c68');
+    env.addColorStop(0.18, '#cfcbc4');
+    env.addColorStop(0.34, '#8e8a85');
+    env.addColorStop(0.52, '#3a3835');
+    env.addColorStop(0.74, '#272522');
+    env.addColorStop(0.88, '#55514c');
+    env.addColorStop(1.00, '#1c1a17');
+    cCtx.fillStyle = env;
+    cCtx.fillRect(bx - r, by - r, r * 2, r * 2);
+
+    // Spherical form shading (rim darkening, centre lift)
+    const form = cCtx.createRadialGradient(bx - r * 0.2, by - r * 0.25, r * 0.1, bx, by, r);
+    form.addColorStop(0,    'rgba(255,255,255,0.10)');
+    form.addColorStop(0.6,  'rgba(0,0,0,0)');
+    form.addColorStop(0.92, 'rgba(0,0,0,0.35)');
+    form.addColorStop(1,    'rgba(0,0,0,0.6)');
+    cCtx.fillStyle = form;
+    cCtx.fillRect(bx - r, by - r, r * 2, r * 2);
+
+    // Primary specular hotspot (top-left)
+    const sx = bx - r * 0.36, sy = by - r * 0.40;
+    const spec = cCtx.createRadialGradient(sx, sy, 0, sx, sy, r * 0.55);
+    spec.addColorStop(0,   'rgba(255,255,255,0.95)');
+    spec.addColorStop(0.4, 'rgba(255,255,255,0.35)');
+    spec.addColorStop(1,   'rgba(255,255,255,0)');
+    cCtx.fillStyle = spec;
+    cCtx.fillRect(bx - r, by - r, r * 2, r * 2);
+
+    // Cool rim light (bottom-right)
+    const rx = bx + r * 0.42, ry = by + r * 0.45;
+    const rim = cCtx.createRadialGradient(rx, ry, 0, rx, ry, r * 0.5);
+    rim.addColorStop(0, 'rgba(190,200,215,0.45)');
+    rim.addColorStop(1, 'rgba(190,200,215,0)');
+    cCtx.fillStyle = rim;
+    cCtx.fillRect(bx - r, by - r, r * 2, r * 2);
+
+    cCtx.restore();
+  }
+
   function ncDraw() {
     cCtx.clearRect(0, 0, ncW, ncH);
 
-    const fr       = ncBallR;
-    const totalW   = NC * ncBallR * 2;
-    const frameX   = ncPivots[0].x - ncBallR - fr;
-    const frameW   = totalW + fr * 2;
-    const frameY   = ncPivots[0].y - fr * 1.2;
-    const frameH   = ncPendL + ncBallR * 2.4;
-    const legW     = fr * 0.62;
+    const fr     = ncBallR;
+    const totalW = NC * ncBallR * 2;
+    const frameX = ncPivots[0].x - ncBallR - fr;
+    const frameW = totalW + fr * 2;
+    const frameY = ncPivots[0].y - fr * 1.25;
+    const frameH = ncPendL + ncBallR * 2.55;
+    const legW   = fr * 0.6;
+    const fY     = floorY();
 
-    // ── Frame ──────────────────────────────────────────
-    // Top rail
+    // ── Ambient vignette ───────────────────────────────
+    const vg = cCtx.createRadialGradient(ncW / 2, ncH * 0.42, ncH * 0.15, ncW / 2, ncH * 0.5, ncH * 0.85);
+    vg.addColorStop(0, 'rgba(255,255,255,0.04)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    cCtx.fillStyle = vg;
+    cCtx.fillRect(0, 0, ncW, ncH);
+
+    // ── Floor reflections (behind everything) ──────────
+    cCtx.save();
+    cCtx.beginPath();
+    cCtx.rect(0, fY, ncW, ncH - fY);
+    cCtx.clip();
+    for (let i = 0; i < NC; i++) {
+      const bx = ncBx(i), by = ncBy(i);
+      const ry = 2 * fY - by;                       // mirror across floor line
+      const fade = Math.max(0, 0.28 - (ry - fY) / (ncH * 1.4));
+      if (fade > 0.01) ncBall(bx, ry, ncBallR, fade);
+    }
+    cCtx.restore();
+
+    // Floor line glow
+    const fl = cCtx.createLinearGradient(0, fY - 2, 0, fY + ncBallR * 1.2);
+    fl.addColorStop(0, 'rgba(180,170,155,0.12)');
+    fl.addColorStop(1, 'rgba(180,170,155,0)');
+    cCtx.fillStyle = fl;
+    cCtx.fillRect(frameX - fr, fY - 2, frameW + fr * 2, ncBallR * 1.2);
+
+    // ── Frame ───────────────────────────────────────────
     const railG = cCtx.createLinearGradient(frameX, frameY, frameX, frameY + fr * 0.72);
-    railG.addColorStop(0,   '#4a4845');
+    railG.addColorStop(0,   '#55524e');
     railG.addColorStop(0.4, '#3a3835');
-    railG.addColorStop(1,   '#252523');
+    railG.addColorStop(1,   '#222220');
     cCtx.fillStyle = railG;
     cCtx.fillRect(frameX, frameY, frameW, fr * 0.72);
+    cCtx.fillStyle = 'rgba(215,205,190,0.16)';
+    cCtx.fillRect(frameX, frameY, frameW, fr * 0.09);
 
-    // Rail sheen line
-    cCtx.fillStyle = 'rgba(210,200,185,0.13)';
-    cCtx.fillRect(frameX, frameY, frameW, fr * 0.10);
-
-    // Left leg
-    const llG = cCtx.createLinearGradient(frameX, 0, frameX + legW, 0);
-    llG.addColorStop(0,   '#303030');
-    llG.addColorStop(0.5, '#484543');
-    llG.addColorStop(1,   '#222221');
-    cCtx.fillStyle = llG;
+    const legGrad = (x0, x1) => {
+      const g = cCtx.createLinearGradient(x0, 0, x1, 0);
+      g.addColorStop(0, '#2c2c2b'); g.addColorStop(0.5, '#4c4946'); g.addColorStop(1, '#1f1f1e');
+      return g;
+    };
+    cCtx.fillStyle = legGrad(frameX, frameX + legW);
     cCtx.fillRect(frameX, frameY, legW, frameH);
-
-    // Right leg
-    const rlG = cCtx.createLinearGradient(frameX + frameW - legW, 0, frameX + frameW, 0);
-    rlG.addColorStop(0,   '#222221');
-    rlG.addColorStop(0.5, '#484543');
-    rlG.addColorStop(1,   '#303030');
-    cCtx.fillStyle = rlG;
+    cCtx.fillStyle = legGrad(frameX + frameW, frameX + frameW - legW);
     cCtx.fillRect(frameX + frameW - legW, frameY, legW, frameH);
 
-    // Red accent caps on legs
-    cCtx.fillStyle = 'rgba(194,0,0,0.75)';
-    cCtx.fillRect(frameX,                    frameY, legW, fr * 0.28);
-    cCtx.fillRect(frameX + frameW - legW,    frameY, legW, fr * 0.28);
+    // Bolts on rail
+    cCtx.fillStyle = 'rgba(20,20,19,0.8)';
+    [frameX + legW * 0.5, frameX + frameW - legW * 0.5].forEach(bxp => {
+      cCtx.beginPath(); cCtx.arc(bxp, frameY + fr * 0.36, fr * 0.12, 0, Math.PI * 2); cCtx.fill();
+    });
 
-    // ── Strings & Balls ────────────────────────────────
+    // Red accent caps
+    cCtx.fillStyle = 'rgba(194,0,0,0.8)';
+    cCtx.fillRect(frameX, frameY, legW, fr * 0.26);
+    cCtx.fillRect(frameX + frameW - legW, frameY, legW, fr * 0.26);
+
+    // ── Strings ──────────────────────────────────────────
     for (let i = 0; i < NC; i++) {
-      const bx  = ncBx(i);
-      const by  = ncBy(i);
-      const px  = ncPivots[i].x;
-      const py  = ncPivots[i].y;
-      const off = ncBallR * 0.28;
-
-      // Twin strings
-      cCtx.strokeStyle = 'rgba(185,175,160,0.42)';
-      cCtx.lineWidth   = 1;
+      const bx = ncBx(i), by = ncBy(i), px = ncPivots[i].x, py = ncPivots[i].y;
+      const off = ncBallR * 0.30;
+      cCtx.strokeStyle = 'rgba(190,180,165,0.5)';
+      cCtx.lineWidth = 1;
       cCtx.beginPath(); cCtx.moveTo(px - off, py); cCtx.lineTo(bx - off, by); cCtx.stroke();
       cCtx.beginPath(); cCtx.moveTo(px + off, py); cCtx.lineTo(bx + off, by); cCtx.stroke();
+      cCtx.beginPath(); cCtx.arc(px, py, ncBallR * 0.12, 0, Math.PI * 2);
+      cCtx.fillStyle = 'rgba(150,140,125,0.55)'; cCtx.fill();
+    }
 
-      // Soft contact-point dot on rail
-      cCtx.beginPath();
-      cCtx.arc(px, py, ncBallR * 0.13, 0, Math.PI * 2);
-      cCtx.fillStyle = 'rgba(150,140,125,0.5)';
-      cCtx.fill();
-
-      // Drop shadow (ellipse beneath ball)
-      const sdg = cCtx.createRadialGradient(bx, by + ncBallR * 0.55, 0, bx, by + ncBallR * 0.55, ncBallR * 1.3);
-      sdg.addColorStop(0, 'rgba(0,0,0,0.30)');
+    // ── Contact shadows ──────────────────────────────────
+    for (let i = 0; i < NC; i++) {
+      const bx = ncBx(i);
+      const sdg = cCtx.createRadialGradient(bx, fY, 0, bx, fY, ncBallR * 1.5);
+      sdg.addColorStop(0, 'rgba(0,0,0,0.32)');
       sdg.addColorStop(1, 'rgba(0,0,0,0)');
       cCtx.save();
-      cCtx.scale(1, 0.45);
-      cCtx.beginPath();
-      cCtx.arc(bx, (by + ncBallR * 0.55) / 0.45, ncBallR * 1.15, 0, Math.PI * 2);
-      cCtx.fillStyle = sdg;
-      cCtx.fill();
+      cCtx.translate(bx, fY);
+      cCtx.scale(1, 0.28);
+      cCtx.beginPath(); cCtx.arc(0, 0, ncBallR * 1.5, 0, Math.PI * 2);
+      cCtx.fillStyle = sdg; cCtx.fill();
       cCtx.restore();
+    }
 
-      // Ball body — metallic radial gradient
-      const gx  = bx - ncBallR * 0.34;
-      const gy  = by - ncBallR * 0.34;
-      const bg  = cCtx.createRadialGradient(gx, gy, ncBallR * 0.04, bx, by, ncBallR);
-      bg.addColorStop(0,    '#dcd8d2');
-      bg.addColorStop(0.22, '#b8b3ad');
-      bg.addColorStop(0.60, '#706c68');
-      bg.addColorStop(0.86, '#484541');
-      bg.addColorStop(1,    '#28261f');
-      cCtx.beginPath();
-      cCtx.arc(bx, by, ncBallR, 0, Math.PI * 2);
-      cCtx.fillStyle = bg;
-      cCtx.fill();
-
-      // Specular highlight
-      const sg = cCtx.createRadialGradient(gx, gy, 0, gx, gy, ncBallR * 0.60);
-      sg.addColorStop(0,   'rgba(255,255,255,0.78)');
-      sg.addColorStop(0.5, 'rgba(255,255,255,0.18)');
-      sg.addColorStop(1,   'rgba(255,255,255,0)');
-      cCtx.beginPath();
-      cCtx.arc(bx, by, ncBallR, 0, Math.PI * 2);
-      cCtx.fillStyle = sg;
-      cCtx.fill();
-
-      // Red velocity glow (physics flair)
-      const spd = Math.abs(ncVels[i]);
-      if (spd > 0.007) {
-        const inten = Math.min(spd / 0.05, 1);
-        const gg = cCtx.createRadialGradient(bx, by, ncBallR * 0.5, bx, by, ncBallR * 2.3);
-        gg.addColorStop(0, `rgba(194,0,0,${0.24 * inten})`);
-        gg.addColorStop(1, 'rgba(194,0,0,0)');
+    // ── Motion trails ────────────────────────────────────
+    for (let i = 0; i < NC; i++) {
+      const t = ncTrails[i];
+      for (let k = 0; k < t.length; k++) {
+        const a = (k / t.length) * 0.22;
         cCtx.beginPath();
-        cCtx.arc(bx, by, ncBallR * 2.3, 0, Math.PI * 2);
-        cCtx.fillStyle = gg;
+        cCtx.arc(t[k].x, t[k].y, ncBallR * (0.6 + 0.4 * k / t.length), 0, Math.PI * 2);
+        cCtx.fillStyle = `rgba(194,0,0,${a})`;
         cCtx.fill();
       }
     }
+
+    // ── Balls + velocity glow ────────────────────────────
+    for (let i = 0; i < NC; i++) {
+      const bx = ncBx(i), by = ncBy(i);
+      const spd = Math.abs(ncVels[i]);
+      if (spd > 0.006) {
+        const inten = Math.min(spd / 0.05, 1);
+        const gg = cCtx.createRadialGradient(bx, by, ncBallR * 0.5, bx, by, ncBallR * 2.4);
+        gg.addColorStop(0, `rgba(194,0,0,${0.26 * inten})`);
+        gg.addColorStop(1, 'rgba(194,0,0,0)');
+        cCtx.beginPath(); cCtx.arc(bx, by, ncBallR * 2.4, 0, Math.PI * 2);
+        cCtx.fillStyle = gg; cCtx.fill();
+      }
+      ncBall(bx, by, ncBallR, 1);
+    }
+
+    // ── Impact rings ─────────────────────────────────────
+    for (const r of ncRings) {
+      cCtx.beginPath();
+      cCtx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      cCtx.strokeStyle = `rgba(255,${Math.round(120 + 80 * r.life)},90,${0.5 * r.life})`;
+      cCtx.lineWidth = 2 * r.life + 0.5;
+      cCtx.stroke();
+    }
+
+    // ── Sparks ───────────────────────────────────────────
+    for (const s of ncSparks) {
+      const a = s.life / s.max;
+      cCtx.beginPath();
+      cCtx.moveTo(s.x, s.y);
+      cCtx.lineTo(s.x - s.vx * 1.6, s.y - s.vy * 1.6);
+      cCtx.strokeStyle = `rgba(255,${Math.round(180 + 60 * a)},${Math.round(110 * a)},${a})`;
+      cCtx.lineWidth = 1.4 * a + 0.3;
+      cCtx.stroke();
+    }
   }
 
-  function ncLoop() {
-    if (!ncRunning) return;
-    const g = 0.45;
+  function ncSpawnImpact(x, y, dir) {
+    ncRings.push({ x, y, r: ncBallR * 0.9, life: 1 });
+    const n = 7;
+    for (let k = 0; k < n; k++) {
+      const ang = (-Math.PI / 2) + (Math.random() - 0.5) * 1.7 + (dir > 0 ? 0.5 : -0.5);
+      const sp = 1.5 + Math.random() * 3;
+      ncSparks.push({
+        x, y,
+        vx: Math.cos(ang) * sp + dir * 1.2,
+        vy: Math.sin(ang) * sp,
+        life: 1, max: 0.6 + Math.random() * 0.5
+      });
+    }
+  }
+
+  function ncStep() {
+    for (let i = 0; i < NC; i++) ncPrevSpd[i] = Math.abs(ncVels[i]);
+
     for (let i = 0; i < NC; i++) {
       if (i === ncDragIdx) continue;
-      ncVels[i]   += -(g / ncPendL) * Math.sin(ncAngles[i]);
+      ncVels[i]   += -(GRAV / ncPendL) * Math.sin(ncAngles[i]);
       ncVels[i]   *= DAMP;
       ncAngles[i] += ncVels[i];
     }
     ncResolve();
+
+    // Impact detection: a near-still ball that suddenly gains speed was struck
+    for (let i = 0; i < NC; i++) {
+      const spd = Math.abs(ncVels[i]);
+      if (ncPrevSpd[i] < 0.004 && spd > 0.014) {
+        const dir = ncVels[i] > 0 ? 1 : -1;
+        ncSpawnImpact(ncBx(i) - dir * ncBallR, ncBy(i), dir);
+        ncHits++;
+        ncClick(Math.min(1, (spd - 0.014) / 0.055), i);
+      }
+      // trails
+      if (spd > 0.014) {
+        ncTrails[i].push({ x: ncBx(i), y: ncBy(i) });
+        if (ncTrails[i].length > 6) ncTrails[i].shift();
+      } else if (ncTrails[i].length) {
+        ncTrails[i].shift();
+      }
+    }
+
+    // advance sparks & rings
+    for (const s of ncSparks) { s.vy += 0.18; s.x += s.vx; s.y += s.vy; s.life -= 0.045; }
+    ncSparks = ncSparks.filter(s => s.life > 0);
+    for (const r of ncRings) { r.r += ncBallR * 0.18; r.life -= 0.06; }
+    ncRings = ncRings.filter(r => r.life > 0);
+  }
+
+  function ncLoop() {
+    if (!ncRunning) return;
+    ncStep();
     ncDraw();
+    if ((ncHudTick++ & 3) === 0) ncUpdateHUD();
     requestAnimationFrame(ncLoop);
   }
 
-  // ── Input helpers ───────────────────────────────────
+  // ── Input ────────────────────────────────────────────
   function ncXY(e) {
     const rect = cradleCanvas.getBoundingClientRect();
     const sx = ncW / rect.width, sy = ncH / rect.height;
     const src = e.touches ? e.touches[0] : e;
     return [(src.clientX - rect.left) * sx, (src.clientY - rect.top) * sy];
   }
-
   function ncNearest(mx, my) {
     for (let i = 0; i < NC; i++) {
       const dx = mx - ncBx(i), dy = my - ncBy(i);
@@ -1083,27 +1304,24 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
     return -1;
   }
-
   function ncDown(e) {
+    ncAudioInit();
     const [mx, my] = ncXY(e);
     ncDragIdx = ncNearest(mx, my);
     if (ncDragIdx >= 0) { ncVels[ncDragIdx] = 0; cradleCanvas.style.cursor = 'grabbing'; e.preventDefault(); }
   }
-
   function ncMove(e) {
     const [mx, my] = ncXY(e);
     if (ncDragIdx >= 0) {
-      const dx  = mx - ncPivots[ncDragIdx].x;
-      const dy  = my - ncPivots[ncDragIdx].y;
-      let   ang = Math.atan2(dx, Math.max(dy, ncPendL * 0.15));
+      const dx = mx - ncPivots[ncDragIdx].x, dy = my - ncPivots[ncDragIdx].y;
+      let ang = Math.atan2(dx, Math.max(dy, ncPendL * 0.15));
       ncAngles[ncDragIdx] = Math.max(-Math.PI * 0.58, Math.min(Math.PI * 0.58, ang));
-      ncVels[ncDragIdx]   = 0;
+      ncVels[ncDragIdx] = 0;
       if (e.cancelable) e.preventDefault();
     } else {
       cradleCanvas.style.cursor = ncNearest(mx, my) >= 0 ? 'grab' : 'default';
     }
   }
-
   function ncUp() { ncDragIdx = -1; cradleCanvas.style.cursor = 'default'; }
 
   cradleCanvas.addEventListener('mousedown',  ncDown);
@@ -1114,11 +1332,45 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   cradleCanvas.addEventListener('touchmove',  ncMove, { passive: false });
   cradleCanvas.addEventListener('touchend',   ncUp);
 
+  // Quick-drop controls
+  function ncLift(n) {
+    ncDragIdx = -1;
+    ncSparks = []; ncRings = [];
+    ncTrails = Array.from({ length: NC }, () => []);
+    ncAngles = new Array(NC).fill(0);
+    ncVels   = new Array(NC).fill(0);
+    const k = Math.min(n, NC);
+    for (let i = 0; i < k; i++) ncAngles[i] = -Math.PI / 4;
+    ncHits = 0;
+    ncE0   = ncEnergy() || 1;
+    ncUpdateHUD();
+  }
+  const ctrlWrap = document.querySelector('.cradle-controls');
+  const dropBtns = ctrlWrap ? [...ctrlWrap.querySelectorAll('button[data-drop]')] : [];
+  if (ctrlWrap) {
+    ctrlWrap.addEventListener('click', (e) => {
+      ncAudioInit();
+      const b = e.target.closest('button[data-drop]');
+      if (!b) return;
+      ncLift(parseInt(b.dataset.drop, 10) || 1);
+      dropBtns.forEach(x => x.classList.toggle('active', x === b));
+    });
+  }
+  // Sound toggle
+  const soundBtn = document.getElementById('cradle-sound');
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      ncAudioInit();
+      ncMuted = !ncMuted;
+      soundBtn.classList.toggle('muted', ncMuted);
+      soundBtn.querySelector('i').className = ncMuted ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
+    });
+  }
+
   function initCradle() {
     ncResize();
-    ncAngles  = new Array(NC).fill(0);
-    ncVels    = new Array(NC).fill(0);
-    ncAngles[0] = -Math.PI / 4;   // first ball pulled back to start
+    ncLift(1);
+    if (dropBtns[0]) dropBtns[0].classList.add('active');
     ncRunning = true;
     ncLoop();
   }
