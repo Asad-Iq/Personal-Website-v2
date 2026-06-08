@@ -209,6 +209,11 @@
           <div class="a-slide-content">
             <div id="map-svg-container"></div>
             <div id="map-tooltip" class="map-tooltip"></div>
+            <div class="map-legend">
+              <span class="ml-item"><i class="ml-swatch"></i> been there</span>
+              <span class="ml-count"><span id="map-visited-count">0</span> countries</span>
+            </div>
+            <div class="sim-hint">Hover a country to see its name</div>
           </div>
         </div>
       </div>
@@ -1378,40 +1383,145 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   // --- Slide 2: Map ---
   function renderMap() {
     if (typeof d3 === 'undefined') return setTimeout(renderMap, 100);
-    const mContainer = d3.select("#map-svg-container");
+
+    /* ────────────────────────────────────────────────────────────
+       COUNTRIES I'VE VISITED — edit this list.
+       Names are matched case-insensitively against the map data's
+       English country names (e.g. "United Kingdom", "China",
+       "France", "Spain", "United States of America", "Japan").
+       Just add a line for each country and it'll light up red.
+       ──────────────────────────────────────────────────────────── */
+    const VISITED = [
+      "England",
+      "China",
+      "Ireland",
+      "Portugal",
+      "Spain",
+      "France",
+      "Luxembourg",
+      "Germany",
+      "Switzerland",
+      "Italy",
+      "Austria",
+      "Czech Republic",
+      "Poland",
+      "Hungary",
+      "Croatia",
+      "Bosnia and Herzegovina",
+      "Serbia",
+      "Albania",
+      "Greece",
+      "Bulgaria",
+      "Romania",
+      "Tunisia",
+      "Algeria",
+      "Morocco",
+      "Libya",
+      "Egypt",
+      "Ethiopia",
+      "Zambia",
+      "Zimbabwe",
+      "South Africa",
+      "Lebanon",
+      "Kuwait",
+      "United Arab Emirates",
+      "Qatar",
+      "Bahrain",
+      "Oman",
+      "Iran",
+      "Tajikistan",
+      "Uzbekistan",
+      "Kazakhstan",
+      "Kyrgyzstan",
+      "India",
+      "Vietnam",
+      "South Korea",
+      "Japan",
+      "Philippines",
+      "Malaysia",
+      "Indonesia",
+      "Australia",
+      "New Zealand",
+      "Mexico",
+      "USA",
+      "Canada",
+      "Brazil"
+
+  ];
+    const visitedSet = new Set(VISITED.map(s => s.toLowerCase()));
+
+    const container = document.getElementById('map-svg-container');
     const mWidth = 1000, mHeight = 500;
 
-    // 🔧 FIX 3: Force the SVG to expand to 100% of its container
-    const mSvg = mContainer.append("svg")
+    const svg = d3.select("#map-svg-container").append("svg")
         .attr("viewBox", `0 0 ${mWidth} ${mHeight}`)
         .style("width", "100%")
         .style("height", "100%");
 
-    const mProj = d3.geoMercator().scale(130).translate([mWidth / 2, mHeight / 1.5]);
-    const mPath = d3.geoPath().projection(mProj);
-    const mTooltip = d3.select("#map-tooltip");
+    const tooltip = d3.select("#map-tooltip");
 
-    const mMarkers = [
-      { name: "Leeds", desc: "Physics BSc.", coords: [-1.549, 53.800] },
-      { name: "Glasgow", desc: "City escapes.", coords: [-4.251, 55.864] },
-      { name: "Changsha", desc: "TEFL Training.", coords: [112.938, 28.228] }
+    // City-level places worth calling out (drawn on top)
+    const cities = [
+      { name: "Leeds",    desc: "Physics BSc",   coords: [-1.549, 53.800] },
+      { name: "Leeds",    desc: "Academic Presentation",   coords: [-1.549, 51.800] },
+      { name: "Bradford",  desc: "Research Intern",  coords: [-4.251, 55.864] },
+      { name: "Changsha", desc: "Work Placement", coords: [112.938, 28.228] }
     ];
 
-    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(data => {
-      mSvg.append("g").selectAll("path").data(data.features).enter().append("path")
-         .attr("d", mPath).attr("class", "country");
+    const showTip = (event, title, sub, visited) => {
+      const rect = container.getBoundingClientRect();
+      tooltip.style("opacity", 1)
+             .html(`<strong>${title}</strong>${sub ? sub : ''}${visited ? '<span class="t-visited">✓ visited</span>' : ''}`)
+             .style("left", (event.clientX - rect.left + 16) + "px")
+             .style("top",  (event.clientY - rect.top  - 14) + "px");
+    };
+    const hideTip = () => tooltip.style("opacity", 0);
 
-      mSvg.selectAll("circle").data(mMarkers).enter().append("circle")
-         .attr("cx", d => mProj(d.coords)[0])
-         .attr("cy", d => mProj(d.coords)[1])
-         .attr("r", 4).attr("class", "map-pin")
-         .on("mouseover", (event, d) => {
-           const rect = document.getElementById('map-svg-container').getBoundingClientRect();
-           mTooltip.style("opacity", 1).html(`<strong>${d.name}</strong>${d.desc}`)
-                   .style("left", (event.clientX - rect.left + 15) + "px")
-                   .style("top", (event.clientY - rect.top - 20) + "px");
-         })
-         .on("mouseout", () => mTooltip.style("opacity", 0));
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(data => {
+      // Drop Antarctica for a cleaner frame
+      const feats = data.features.filter(f => (f.properties.name || '') !== 'Antarctica');
+      const isVisited = f => visitedSet.has((f.properties.name || '').toLowerCase());
+
+      // NaturalEarth1 projection, padded to fit the panel
+      const projection = d3.geoNaturalEarth1()
+          .fitExtent([[12, 10], [mWidth - 12, mHeight - 10]],
+                     { type: "FeatureCollection", features: feats });
+      const path = d3.geoPath().projection(projection);
+
+      // Subtle ocean / globe outline
+      svg.append("path")
+         .datum({ type: "Sphere" })
+         .attr("class", "map-ocean")
+         .attr("d", path);
+
+      // Countries
+      svg.append("g").selectAll("path")
+         .data(feats).enter().append("path")
+         .attr("d", path)
+         .attr("class", d => isVisited(d) ? "country visited" : "country")
+         .on("mousemove", (event, d) => showTip(event, d.properties.name || "—", "", isVisited(d)))
+         .on("mouseout", hideTip);
+
+      // City pins on top
+      svg.append("g").selectAll("circle")
+         .data(cities).enter().append("circle")
+         .attr("cx", d => projection(d.coords)[0])
+         .attr("cy", d => projection(d.coords)[1])
+         .attr("r", 4)
+         .attr("class", "map-pin")
+         .on("mousemove", (event, d) => showTip(event, d.name, d.desc, false))
+         .on("mouseout", hideTip);
+
+      // Update the legend counter
+      const matched = feats.filter(isVisited);
+      const counter = document.getElementById('map-visited-count');
+      if (counter) counter.textContent = matched.length;
+
+      // Help the user catch typos in the VISITED list
+      VISITED.forEach(v => {
+        if (!feats.some(f => (f.properties.name || '').toLowerCase() === v.toLowerCase()))
+          console.warn('Map: no country matched "' + v + '" — check spelling against the dataset.');
+      });
     });
   }
 
