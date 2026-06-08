@@ -177,11 +177,11 @@
       <div class="a-slide">
         <div class="interactive-full">
           <div class="a-slide-header">
-            <h3>Orbital Mechanics</h3>
+            <h3>Newton's Cradle</h3>
           </div>
           <div class="a-slide-content">
-            <canvas id="sim-canvas"></canvas>
-            <div class="sim-hint">Move cursor to shift mass.</div>
+            <canvas id="cradle-canvas"></canvas>
+            <div class="sim-hint">Drag a ball · pull back · release</div>
           </div>
         </div>
       </div>
@@ -868,9 +868,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     currentIndex = (currentIndex + step + slides.length) % slides.length;
     slides[currentIndex].classList.add('active');
     
-    // 🔧 FIX 1: Force the physics canvas to recalculate its width instantly when viewed
+    // Recalculate cradle canvas when slide becomes visible
     if (currentIndex === 1) {
-      setTimeout(resizeSim, 50);
+      setTimeout(ncResize, 50);
     }
 
     // Trigger map render if moving to map slide
@@ -880,91 +880,247 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
   };
 
-  // --- Slide 1: Physics Sim ---
-  const simCanvas = document.getElementById('sim-canvas');
-  if (!simCanvas) return;
-  const simCtx = simCanvas.getContext('2d');
-  let simW, simH;
-  let simParticles = [];
-  let simMouse = { x: -1000, y: -1000, mass: 3000 };
-  let simActive = true;
+  // --- Slide 1: Newton's Cradle ---
+  const cradleCanvas = document.getElementById('cradle-canvas');
+  if (!cradleCanvas) return;
+  const cCtx = cradleCanvas.getContext('2d');
 
-  function resizeSim() {
-    const rect = simCanvas.parentElement.getBoundingClientRect();
-    // Locks the internal drawing resolution to the exact CSS display size
-    simW = simCanvas.width = rect.width || 1000;
-    simH = simCanvas.height = rect.height || 500;
-    
-    // Recenter the default gravity well
-    if (simMouse.x === -1000) { simMouse.x = simW / 2; simMouse.y = simH / 2; }
-  }
-  
-  simCanvas.addEventListener('mousemove', (e) => {
-    const rect = simCanvas.getBoundingClientRect();
-    // 🔧 FIX 2: Calculate scale difference so the mouse perfectly aligns with gravity
-    const scaleX = simCanvas.width / rect.width;
-    const scaleY = simCanvas.height / rect.height;
-    simMouse.x = (e.clientX - rect.left) * scaleX;
-    simMouse.y = (e.clientY - rect.top) * scaleY;
-  });
-  
-  simCanvas.addEventListener('mousedown', (e) => {
-    const rect = simCanvas.getBoundingClientRect();
-    const scaleX = simCanvas.width / rect.width;
-    const scaleY = simCanvas.height / rect.height;
-    for(let i=0; i<3; i++) {
-      simParticles.push({
-        x: ((e.clientX - rect.left) * scaleX) + (Math.random()*20-10),
-        y: ((e.clientY - rect.top) * scaleY) + (Math.random()*20-10),
-        vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
-        path: []
-      });
-    }
-  });
+  const NC     = 5;      // number of balls
+  const PASSES = 15;     // collision resolution passes per frame
+  const DAMP   = 0.9998; // energy loss per frame
 
-  function initSim() {
-    resizeSim();
-    for(let i=0; i<75; i++) {
-      simParticles.push({
-        x: Math.random() * simW, y: Math.random() * simH,
-        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-        path: []
-      });
-    }
-    animateSim();
+  let ncW, ncH, ncPendL, ncBallR;
+  let ncPivots  = [];
+  let ncAngles  = new Array(NC).fill(0);
+  let ncVels    = new Array(NC).fill(0);
+  let ncDragIdx = -1;
+  let ncRunning = false;
+
+  function ncResize() {
+    const rect = cradleCanvas.parentElement.getBoundingClientRect();
+    ncW      = cradleCanvas.width  = rect.width  || 800;
+    ncH      = cradleCanvas.height = rect.height || 500;
+    ncPendL  = Math.min(ncH * 0.40, 180);
+    ncBallR  = Math.min(ncW * 0.028, 26);
+    const totalW = NC * ncBallR * 2;
+    const cx = ncW / 2, py = ncH * 0.28;
+    ncPivots = Array.from({ length: NC }, (_, i) => ({
+      x: cx - totalW / 2 + ncBallR + i * ncBallR * 2,
+      y: py
+    }));
   }
 
-  function animateSim() {
-    if(!simActive) return;
-    simCtx.fillStyle = 'rgba(13, 13, 13, 0.2)'; 
-    simCtx.fillRect(0, 0, simW, simH);
-    
-    simParticles.forEach(p => {
-      let dx = simMouse.x - p.x;
-      let dy = simMouse.y - p.y;
-      let distSq = dx*dx + dy*dy;
-      let dist = Math.sqrt(distSq);
-      let force = simMouse.mass / (distSq || 1); 
-      p.vx += force * (dx / dist);
-      p.vy += force * (dy / dist);
-      p.vx *= 0.99; p.vy *= 0.99;
-      p.x += p.vx; p.y += p.vy;
+  const ncBx = i => ncPivots[i].x + ncPendL * Math.sin(ncAngles[i]);
+  const ncBy = i => ncPivots[i].y + ncPendL * Math.cos(ncAngles[i]);
 
-      p.path.push({x: p.x, y: p.y});
-      if(p.path.length > 15) p.path.shift();
-
-      simCtx.fillStyle = '#f0ece6';
-      simCtx.beginPath(); simCtx.arc(p.x, p.y, 1.5, 0, Math.PI*2); simCtx.fill();
-      
-      if(p.path.length > 1) {
-        simCtx.beginPath();
-        simCtx.moveTo(p.path[0].x, p.path[0].y);
-        for(let i=1; i<p.path.length; i++) simCtx.lineTo(p.path[i].x, p.path[i].y);
-        simCtx.strokeStyle = 'rgba(194, 0, 0, 0.4)';
-        simCtx.lineWidth = 1; simCtx.stroke();
+  // Elastic collision propagation: forward-only passes are sufficient
+  // because the condition (vxi > vxi1) handles both left→right and right→left impacts.
+  function ncResolve() {
+    for (let pass = 0; pass < PASSES; pass++) {
+      for (let i = 0; i < NC - 1; i++) {
+        const xi  = ncBx(i);
+        const xi1 = ncBx(i + 1);
+        if (xi + ncBallR > xi1 - ncBallR) {
+          const vxi  = ncVels[i]     * ncPendL;
+          const vxi1 = ncVels[i + 1] * ncPendL;
+          if (vxi > vxi1) {                       // approaching → elastic swap
+            ncVels[i]     = vxi1 / ncPendL;
+            ncVels[i + 1] = vxi  / ncPendL;
+          }
+          const ov = xi + ncBallR * 2 - xi1;     // positional separation
+          if (ov > 0) {
+            const half = ov * 0.5 / ncPendL;
+            ncAngles[i]     -= half;
+            ncAngles[i + 1] += half;
+          }
+        }
       }
-    });
-    requestAnimationFrame(animateSim);
+    }
+  }
+
+  function ncDraw() {
+    cCtx.clearRect(0, 0, ncW, ncH);
+
+    const fr       = ncBallR;
+    const totalW   = NC * ncBallR * 2;
+    const frameX   = ncPivots[0].x - ncBallR - fr;
+    const frameW   = totalW + fr * 2;
+    const frameY   = ncPivots[0].y - fr * 1.2;
+    const frameH   = ncPendL + ncBallR * 2.4;
+    const legW     = fr * 0.62;
+
+    // ── Frame ──────────────────────────────────────────
+    // Top rail
+    const railG = cCtx.createLinearGradient(frameX, frameY, frameX, frameY + fr * 0.72);
+    railG.addColorStop(0,   '#4a4845');
+    railG.addColorStop(0.4, '#3a3835');
+    railG.addColorStop(1,   '#252523');
+    cCtx.fillStyle = railG;
+    cCtx.fillRect(frameX, frameY, frameW, fr * 0.72);
+
+    // Rail sheen line
+    cCtx.fillStyle = 'rgba(210,200,185,0.13)';
+    cCtx.fillRect(frameX, frameY, frameW, fr * 0.10);
+
+    // Left leg
+    const llG = cCtx.createLinearGradient(frameX, 0, frameX + legW, 0);
+    llG.addColorStop(0,   '#303030');
+    llG.addColorStop(0.5, '#484543');
+    llG.addColorStop(1,   '#222221');
+    cCtx.fillStyle = llG;
+    cCtx.fillRect(frameX, frameY, legW, frameH);
+
+    // Right leg
+    const rlG = cCtx.createLinearGradient(frameX + frameW - legW, 0, frameX + frameW, 0);
+    rlG.addColorStop(0,   '#222221');
+    rlG.addColorStop(0.5, '#484543');
+    rlG.addColorStop(1,   '#303030');
+    cCtx.fillStyle = rlG;
+    cCtx.fillRect(frameX + frameW - legW, frameY, legW, frameH);
+
+    // Red accent caps on legs
+    cCtx.fillStyle = 'rgba(194,0,0,0.75)';
+    cCtx.fillRect(frameX,                    frameY, legW, fr * 0.28);
+    cCtx.fillRect(frameX + frameW - legW,    frameY, legW, fr * 0.28);
+
+    // ── Strings & Balls ────────────────────────────────
+    for (let i = 0; i < NC; i++) {
+      const bx  = ncBx(i);
+      const by  = ncBy(i);
+      const px  = ncPivots[i].x;
+      const py  = ncPivots[i].y;
+      const off = ncBallR * 0.28;
+
+      // Twin strings
+      cCtx.strokeStyle = 'rgba(185,175,160,0.42)';
+      cCtx.lineWidth   = 1;
+      cCtx.beginPath(); cCtx.moveTo(px - off, py); cCtx.lineTo(bx - off, by); cCtx.stroke();
+      cCtx.beginPath(); cCtx.moveTo(px + off, py); cCtx.lineTo(bx + off, by); cCtx.stroke();
+
+      // Soft contact-point dot on rail
+      cCtx.beginPath();
+      cCtx.arc(px, py, ncBallR * 0.13, 0, Math.PI * 2);
+      cCtx.fillStyle = 'rgba(150,140,125,0.5)';
+      cCtx.fill();
+
+      // Drop shadow (ellipse beneath ball)
+      const sdg = cCtx.createRadialGradient(bx, by + ncBallR * 0.55, 0, bx, by + ncBallR * 0.55, ncBallR * 1.3);
+      sdg.addColorStop(0, 'rgba(0,0,0,0.30)');
+      sdg.addColorStop(1, 'rgba(0,0,0,0)');
+      cCtx.save();
+      cCtx.scale(1, 0.45);
+      cCtx.beginPath();
+      cCtx.arc(bx, (by + ncBallR * 0.55) / 0.45, ncBallR * 1.15, 0, Math.PI * 2);
+      cCtx.fillStyle = sdg;
+      cCtx.fill();
+      cCtx.restore();
+
+      // Ball body — metallic radial gradient
+      const gx  = bx - ncBallR * 0.34;
+      const gy  = by - ncBallR * 0.34;
+      const bg  = cCtx.createRadialGradient(gx, gy, ncBallR * 0.04, bx, by, ncBallR);
+      bg.addColorStop(0,    '#dcd8d2');
+      bg.addColorStop(0.22, '#b8b3ad');
+      bg.addColorStop(0.60, '#706c68');
+      bg.addColorStop(0.86, '#484541');
+      bg.addColorStop(1,    '#28261f');
+      cCtx.beginPath();
+      cCtx.arc(bx, by, ncBallR, 0, Math.PI * 2);
+      cCtx.fillStyle = bg;
+      cCtx.fill();
+
+      // Specular highlight
+      const sg = cCtx.createRadialGradient(gx, gy, 0, gx, gy, ncBallR * 0.60);
+      sg.addColorStop(0,   'rgba(255,255,255,0.78)');
+      sg.addColorStop(0.5, 'rgba(255,255,255,0.18)');
+      sg.addColorStop(1,   'rgba(255,255,255,0)');
+      cCtx.beginPath();
+      cCtx.arc(bx, by, ncBallR, 0, Math.PI * 2);
+      cCtx.fillStyle = sg;
+      cCtx.fill();
+
+      // Red velocity glow (physics flair)
+      const spd = Math.abs(ncVels[i]);
+      if (spd > 0.007) {
+        const inten = Math.min(spd / 0.05, 1);
+        const gg = cCtx.createRadialGradient(bx, by, ncBallR * 0.5, bx, by, ncBallR * 2.3);
+        gg.addColorStop(0, `rgba(194,0,0,${0.24 * inten})`);
+        gg.addColorStop(1, 'rgba(194,0,0,0)');
+        cCtx.beginPath();
+        cCtx.arc(bx, by, ncBallR * 2.3, 0, Math.PI * 2);
+        cCtx.fillStyle = gg;
+        cCtx.fill();
+      }
+    }
+  }
+
+  function ncLoop() {
+    if (!ncRunning) return;
+    const g = 0.45;
+    for (let i = 0; i < NC; i++) {
+      if (i === ncDragIdx) continue;
+      ncVels[i]   += -(g / ncPendL) * Math.sin(ncAngles[i]);
+      ncVels[i]   *= DAMP;
+      ncAngles[i] += ncVels[i];
+    }
+    ncResolve();
+    ncDraw();
+    requestAnimationFrame(ncLoop);
+  }
+
+  // ── Input helpers ───────────────────────────────────
+  function ncXY(e) {
+    const rect = cradleCanvas.getBoundingClientRect();
+    const sx = ncW / rect.width, sy = ncH / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return [(src.clientX - rect.left) * sx, (src.clientY - rect.top) * sy];
+  }
+
+  function ncNearest(mx, my) {
+    for (let i = 0; i < NC; i++) {
+      const dx = mx - ncBx(i), dy = my - ncBy(i);
+      if (dx * dx + dy * dy < (ncBallR * 1.65) ** 2) return i;
+    }
+    return -1;
+  }
+
+  function ncDown(e) {
+    const [mx, my] = ncXY(e);
+    ncDragIdx = ncNearest(mx, my);
+    if (ncDragIdx >= 0) { ncVels[ncDragIdx] = 0; cradleCanvas.style.cursor = 'grabbing'; e.preventDefault(); }
+  }
+
+  function ncMove(e) {
+    const [mx, my] = ncXY(e);
+    if (ncDragIdx >= 0) {
+      const dx  = mx - ncPivots[ncDragIdx].x;
+      const dy  = my - ncPivots[ncDragIdx].y;
+      let   ang = Math.atan2(dx, Math.max(dy, ncPendL * 0.15));
+      ncAngles[ncDragIdx] = Math.max(-Math.PI * 0.58, Math.min(Math.PI * 0.58, ang));
+      ncVels[ncDragIdx]   = 0;
+      if (e.cancelable) e.preventDefault();
+    } else {
+      cradleCanvas.style.cursor = ncNearest(mx, my) >= 0 ? 'grab' : 'default';
+    }
+  }
+
+  function ncUp() { ncDragIdx = -1; cradleCanvas.style.cursor = 'default'; }
+
+  cradleCanvas.addEventListener('mousedown',  ncDown);
+  cradleCanvas.addEventListener('mousemove',  ncMove);
+  cradleCanvas.addEventListener('mouseup',    ncUp);
+  cradleCanvas.addEventListener('mouseleave', ncUp);
+  cradleCanvas.addEventListener('touchstart', ncDown, { passive: false });
+  cradleCanvas.addEventListener('touchmove',  ncMove, { passive: false });
+  cradleCanvas.addEventListener('touchend',   ncUp);
+
+  function initCradle() {
+    ncResize();
+    ncAngles  = new Array(NC).fill(0);
+    ncVels    = new Array(NC).fill(0);
+    ncAngles[0] = -Math.PI / 4;   // first ball pulled back to start
+    ncRunning = true;
+    ncLoop();
   }
 
   // --- Slide 2: Map ---
@@ -1007,12 +1163,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
   }
 
-  // Ensure window resizing keeps it centered if they adjust their browser
   window.addEventListener('resize', () => {
-    if (slides[1].classList.contains('active')) resizeSim();
+    if (slides[1].classList.contains('active')) ncResize();
   });
   
-  setTimeout(initSim, 100);
+  setTimeout(initCradle, 100);
 })();
 </script>
 </body>
