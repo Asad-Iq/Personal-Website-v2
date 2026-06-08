@@ -1269,221 +1269,282 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .map-pin:hover { transform: scale(1.5); }
 .map-tooltip { position: absolute; opacity: 0; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 0.75rem; font-family: var(--font-mono); font-size: 0.65rem; pointer-events: none; transition: opacity 0.2s; box-shadow: var(--red-glow); z-index: 10; white-space: nowrap; }
 .map-tooltip strong { color: var(--red); font-family: var(--font-disp); font-size: 1rem; letter-spacing: 0.05em; display: block; margin-bottom: 0.1rem; }
+
 /* ============================================================
-   MY LIBRARY — curated shelf
+   REALISTIC BOOKSHELF V2 (Slide 3)
    ============================================================ */
 .mini-bookshelf {
-  --shelf-h: 14px;
-  --shelf-bottom: 2.1rem;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 3px;
-  padding: 0 2.5rem calc(var(--shelf-bottom) + var(--shelf-h));
+  gap: 12px; /* Extra breathing room for the 3D pop */
+  /* FIX: padding-bottom must equal shelf-bottom + shelf-height so books sit flush on shelf.
+     Shelf is at bottom:1.6rem with height:12px → top of shelf = 1.6rem + 12px from outer bottom. */
+  padding: 0 2rem calc(1.6rem + 12px);
   height: 100%;
-  min-height: 440px;
+  min-height: 400px;
   position: relative;
-  perspective: 1500px;
-  background:
-    radial-gradient(130% 80% at 50% -8%, rgba(255,236,205,0.07), transparent 55%),
-    radial-gradient(90% 55% at 50% 14%, rgba(194,0,0,0.05), transparent 62%);
-  overflow: hidden;
+  perspective: 1000px; /* Activates 3D space for the hover effect */
 }
 
-/* Warm wash of light from above */
+/* 1. The solid surface shelf plank */
 .mini-bookshelf::before {
   content: '';
   position: absolute;
-  bottom: var(--shelf-bottom);
-  left: 1.25rem;
-  right: 1.25rem;
-  height: var(--shelf-h);
-  background: linear-gradient(to bottom, #2c2723 0%, #1d1916 55%, #110e0c 100%);
-  border-top: 1px solid rgba(220,198,165,0.20);
-  box-shadow: inset 0 1px 0 rgba(255,238,212,0.12), 0 2px 0 rgba(0,0,0,0.65);
+  bottom: 1.6rem;
+  left: 1rem;
+  right: 1rem;
+  height: 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 2px solid rgba(0,0,0,0.8);
+  z-index: 1;
   border-radius: 2px;
-  z-index: 5;
 }
-/* Deep shadow cast beneath the shelf */
+
+/* 2. The deep drop shadow cast by the shelf */
 .mini-bookshelf::after {
   content: '';
   position: absolute;
-  bottom: calc(var(--shelf-bottom) - 15px);
-  left: 2.5rem;
-  right: 2.5rem;
-  height: 22px;
-  background: rgba(0,0,0,0.55);
-  filter: blur(15px);
+  bottom: -0.5rem;
+  left: 2rem;
+  right: 2rem;
+  height: 20px;
+  background: rgba(0,0,0,0.5);
+  filter: blur(12px);
   z-index: 0;
 }
 
-/* ── Book spine ───────────────────────────────────────── */
+/* 3. The Book Spines */
 .mini-book {
-  flex: 0 0 auto;
-  width: 58px;
-  height: 290px;
+  flex: 0 0 65px; /* Slightly thicker books */
+  height: 250px;
+  border-radius: 6px 6px 0 0;
   position: relative;
-  border-radius: 3px 4px 0 0;
-  cursor: pointer;
-  z-index: 2;
-  transform-origin: bottom center;
-  transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.45s ease,
-    filter 0.45s ease;
-  box-shadow:
-    inset 6px 0 12px rgba(255,255,255,0.06),
-    inset -7px 0 15px rgba(0,0,0,0.55),
-    -5px 0 14px rgba(0,0,0,0.45);
-}
-
-/* The link fills the spine and lays the lettering out vertically */
-.mini-book a {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  height: 100%;
-  width: 100%;
-  padding: 1.9rem 0 1.4rem;
-  writing-mode: vertical-rl;
-  text-decoration: none;
+  padding: 2.2rem 0 1.8rem;
+  writing-mode: vertical-rl; 
+  cursor: pointer;
+  
+  /* Springy 3D transition */
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  transform-origin: bottom center; /* Anchors the bottom so it tilts towards you */
+  
+  z-index: 2;
+  border: none;
 }
 
-/* Cloth headband at the top of the spine */
-.mini-book::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 15%; right: 15%;
-  height: 4px;
-  background: repeating-linear-gradient(90deg, #efe9df 0 2px, #2a2a2a 2px 4px);
-  border-radius: 2px 2px 0 0;
-  opacity: 0.55;
-  z-index: 3;
+/* Hover: Pulls the book OUT and UP in 3D space */
+.mini-book:hover {
+  transform: translateY(-15px) translateZ(40px) rotateX(-8deg);
+  z-index: 10;
 }
 
-/* Finishing pass: top sheen, two raised hubs, foot shadow */
+/* Raised Spine Ribs (Horizontal ridges) */
 .mini-book::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 3px 4px 0 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 6px 6px 0 0;
   pointer-events: none;
-  z-index: 1;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,0.13), rgba(255,255,255,0) 13%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.34) 100%),
-    linear-gradient(to bottom,
-      transparent 19.6%, rgba(0,0,0,0.45) 20%, rgba(255,255,255,0.10) 20.9%, transparent 21.4%,
-      transparent 79.6%, rgba(0,0,0,0.45) 80%, rgba(255,255,255,0.10) 80.9%, transparent 81.4%);
+  /* Simulates 3 physical ridges bound into the leather */
+  background: linear-gradient(to bottom,
+    transparent 15%, rgba(0,0,0,0.6) 15%, rgba(0,0,0,0.6) 16%, rgba(255,255,255,0.15) 16.5%, transparent 17%,
+    transparent 50%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.6) 51%, rgba(255,255,255,0.15) 51.5%, transparent 52%,
+    transparent 85%, rgba(0,0,0,0.6) 85%, rgba(0,0,0,0.6) 86%, rgba(255,255,255,0.15) 86.5%, transparent 87%
+  );
 }
 
-/* Foil-stamped title */
+/* Cloth Headband (Striped fabric at top of spine) */
+.mini-book::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #f0ece6, #f0ece6 2px, #222 2px, #222 4px);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.8;
+}
+
+/* Gold Foil Typography */
 .mini-book h4 {
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  line-height: 1.08;
-  margin: 0;
-  text-align: center;
+  line-height: 1.2;
+  margin: 10px;
+  white-space: nowrap;
   letter-spacing: 0.05em;
-  background: linear-gradient(180deg, #f4dca0 0%, #c89b50 42%, #f6e3ab 52%, #a87c33 100%);
-  -webkit-background-clip: text;
+  
+  /* Creates a metallic gold gradient on the text itself */
+  background: linear-gradient(to bottom, #f9df9f, #cfa045, #f9df9f);
   background-clip: text;
+  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.7));
-  position: relative;
-  z-index: 2;
+  filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.8)); /* Deep shadow so gold pops on dark leather */
 }
 
-/* Author imprint */
 .mini-book p {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: rgba(245,236,230,0.62);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.7); 
   margin: 0;
+  justify-self: center;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.15em;
   white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-  position: relative;
-  z-index: 2;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
 }
 
-/* "Reading" ribbon bookmark */
+/* Bookmark tag */
 .mb-status {
-  writing-mode: horizontal-tb;
+  writing-mode: horizontal-tb; 
   position: absolute;
-  top: -7px;
+  top: -5px; 
   left: 50%;
   transform: translateX(-50%);
   background: var(--red);
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 0.42rem;
-  letter-spacing: 0.14em;
-  padding: 0.5rem 0.5rem 0.32rem;
+  font-size: 0.45rem;
+  padding: 0.25rem 0.6rem;
   text-transform: uppercase;
+  border-radius: 2px;
   white-space: nowrap;
-  z-index: 7;
-  box-shadow: 0 5px 12px rgba(0,0,0,0.55);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+  z-index: 3;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  /* Adds a subtle fabric thread texture to the tag */
+  background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 100% 2px;
 }
 
-/* Hover: rise off the shelf, warm up, red halo */
-.mini-book:hover {
-  transform: translateY(-22px) rotateX(-4deg);
-  z-index: 30;
-  filter: brightness(1.12) saturate(1.08);
-  box-shadow:
-    inset 6px 0 12px rgba(255,255,255,0.08),
-    inset -7px 0 15px rgba(0,0,0,0.5),
-    -10px 22px 34px rgba(0,0,0,0.6),
-    0 0 28px rgba(194,0,0,0.30);
+/* 4. Lighting Gradients and Sizes */
+
+/* Book 1: Deep Navy */
+.mini-book:nth-child(1) { 
+  height: 390px; flex-basis: 75px; 
+  background: linear-gradient(to right, #0d161f, #233b54 15%, #182a3d 50%, #0d161f 85%, #05090d); 
+  box-shadow: -6px 0 15px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.05);
+}
+.mini-book:nth-child(1):hover { box-shadow: -15px 25px 30px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.1); }
+
+/* Book 2: Rich Burgundy */
+.mini-book:nth-child(2) { 
+  height: 480px; flex-basis: 65px; 
+  background: linear-gradient(to right, #240b0b, #4a1919 15%, #381212 50%, #240b0b 85%, #120505); 
+  box-shadow: -6px 0 15px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.05);
+}
+.mini-book:nth-child(2):hover { box-shadow: -15px 25px 30px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.1); }
+
+/* Book 3: Forest Green */
+.mini-book:nth-child(3) { 
+  height: 320px; flex-basis: 55px; 
+  background: linear-gradient(to right, #112114, #27472c 15%, #1e3621 50%, #112114 85%, #08120a); 
+  box-shadow: -6px 0 15px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.05);
+}
+.mini-book:nth-child(3):hover { box-shadow: -15px 25px 30px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.1); }
+
+/* Book 4: Antique Bronze */
+.mini-book:nth-child(4) { 
+  height: 270px; flex-basis: 50px; 
+  background: linear-gradient(to right, #2e2312, #544124 15%, #40311a 50%, #2e2312 85%, #140f07); 
+  box-shadow: -6px 0 15px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.05);
+}
+.mini-book:nth-child(4):hover { box-shadow: -15px 25px 30px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.1); }
+/* ============================================================
+   BOOKSHELF ADDITIONS: Leaning mechanics & New Books
+   ============================================================ */
+
+/* The Domino Leaning Mechanics - Flawless Layering */
+.mini-book.leaning-1 {
+  height: 330px;
+  transform: rotate(10deg);
+  transform-origin: bottom left; /* Anchors the bottom corner firmly to the shelf */
+  margin-left: -7px;
+  margin-right: -8px;  /* Pulls the next book closer */
+  margin-bottom: 7px; 
+  z-index: 4 !important;
+}
+.mini-book.leaning-1:hover {
+  transform: translateY(-15px) translateZ(40px) rotateX(-8deg) rotateZ(10deg);
+  z-index: 10 !important;
 }
 
-/* ── Cohesive deep palette + measured height rhythm ───── */
-.mini-book:nth-child(1) { width: 64px; height: 300px;
-  background: linear-gradient(to right, #0a1422, #20364f 22%, #16273a 50%, #0c1726 78%, #060c15); }
-.mini-book:nth-child(2) { width: 58px; height: 338px;
-  background: linear-gradient(to right, #1f0a0d, #4a1c20 22%, #371316 50%, #220b0e 78%, #120608); }
-.mini-book:nth-child(3) { width: 50px; height: 264px;
-  background: linear-gradient(to right, #0c1a12, #234a31 22%, #173524 50%, #0e2117 78%, #07120c); }
-.mini-book:nth-child(4) { width: 48px; height: 246px;
-  background: linear-gradient(to right, #1f1408, #4a3217 22%, #382712 50%, #221708 78%, #120c05); }
+.mini-book.leaning-2 {
+  height: 360px;
+  transform: rotate(20deg);
+  transform-origin: bottom left;
+  margin-left: -3px;
+  margin-right: 1px;
+  margin-bottom: 14px;
+  z-index: 3 !important;
+}
+.mini-book.leaning-2:hover {
+  transform: translateY(-15px) translateZ(40px) rotateX(-8deg) rotateZ(20deg);
+  z-index: 10 !important;
+}
 
-.b-charcoal { width: 60px; height: 312px; z-index: 5;
-  background: linear-gradient(to right, #131313, #353535 22%, #262626 50%, #161616 78%, #0a0a0a); }
-.b-crimson  { width: 50px; height: 252px;
-  background: linear-gradient(to right, #210e14, #492230 22%, #371a24 50%, #240f16 78%, #130810); }
-.b-teal     { width: 48px; height: 266px;
-  background: linear-gradient(to right, #081a1d, #1e434a 22%, #143035 50%, #0b2024 78%, #061417); }
-.b-olive    { width: 54px; height: 238px;
-  background: linear-gradient(to right, #181a0f, #3a3f25 22%, #2b2f1b 50%, #1b1d11 78%, #0d0f08); }
-.b-brown    { width: 72px; height: 342px; margin-left: -8px; z-index: 6;
-  background: linear-gradient(to right, #1f1208, #4d2f16 22%, #3a2410 50%, #241408 78%, #130b05); }
-.b-blue     { width: 50px; height: 286px;
-  background: linear-gradient(to right, #0a0f1c, #1c2742 22%, #131b30 50%, #0b1020 78%, #05070d); }
+.mini-book.leaning-3 {
+  transform: rotate(28deg);
+  transform-origin: bottom left;
+  margin-left: -5px;
+  margin-right: 120px;
+  margin-bottom: 21px;
+  z-index: 2 !important;
+}
+.mini-book.leaning-3:hover {
+  transform: translateY(-15px) translateZ(40px) rotateX(-8deg) rotateZ(28deg);
+  z-index: 10 !important;
+}
 
-/* ── Gentle, robust lean into the tall brown bookend ──── */
-.mini-book.leaning-1 { transform: rotate(6deg);  transform-origin: bottom left; margin: 0 -9px 5px -2px;  z-index: 4; }
-.mini-book.leaning-2 { transform: rotate(9deg);  transform-origin: bottom left; margin: 0 -9px 9px -5px;  z-index: 3; }
-.mini-book.leaning-3 { transform: rotate(12deg); transform-origin: bottom left; margin: 0 -4px 13px -5px; z-index: 2; }
-.mini-book.leaning-1:hover { transform: translateY(-20px) rotate(6deg)  rotateX(-4deg); z-index: 30; }
-.mini-book.leaning-2:hover { transform: translateY(-20px) rotate(9deg)  rotateX(-4deg); z-index: 30; }
-.mini-book.leaning-3:hover { transform: translateY(-20px) rotate(12deg) rotateX(-4deg); z-index: 30; }
+/* The Bookend: High z-index hides the sharp overlapping corners of the leaning books */
+.mini-book.b-brown {
+  height: 430px;
+  margin-left: -18px; /* Tucks it tightly against the tilted top of the last book */
+  z-index: 6 !important;
+}
 
-/* Compact, scrollable shelf on small screens */
-@media (max-width: 768px) {
-  .mini-bookshelf {
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-  .mini-bookshelf::-webkit-scrollbar { height: 5px; }
-  .mini-bookshelf::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.mini-book.b-charcoal {
+  height: 320px;
+  z-index: 5 !important;
+}
+.mini-book.b-blue {
+  height: 250px;
+  z-index: 1 !important;
+}
+
+/* Apply universal 3D shadow to all new empty books */
+.empty-book {
+  box-shadow: -6px 0 15px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.05);
+}
+.empty-book:hover {
+  box-shadow: -15px 25px 30px rgba(0,0,0,0.6), inset 5px 0 10px rgba(255,255,255,0.1);
+}
+
+/* Colors & Sizes for the new blank books */
+.b-charcoal { height: 310px; flex-basis: 60px; background: linear-gradient(to right, #1a1a1a, #333333 15%, #262626 50%, #1a1a1a 85%, #0d0d0d); }
+.b-crimson  { height: 270px; flex-basis: 50px; background: linear-gradient(to right, #2d141c, #4a212e 15%, #3d1b26 50%, #2d141c 85%, #170a0e); }
+.b-teal     { height: 285px; flex-basis: 45px; background: linear-gradient(to right, #0d1f22, #1c3d42 15%, #152e32 50%, #0d1f22 85%, #060f11); }
+.b-olive    { height: 260px; flex-basis: 48px; background: linear-gradient(to right, #1f2116, #3d422a 15%, #2e331c 50%, #1f2116 85%, #0f120a); }
+.b-brown    { height: 330px; flex-basis: 85px; background: linear-gradient(to right, #2e1a0b, #523117 15%, #422610 50%, #2e1a0b 85%, #170d06); }
+.b-blue     { height: 200px; flex-basis: 40px; background: linear-gradient(to right, #0b0f1a, #18233b 15%, #11192a 50%, #0b0f1a 85%, #04060b); }
+.mini-book {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* Ensure the link wraps the book properly without breaking Flexbox */
+.mini-bookshelf a {
+  text-decoration: none;
+  display: block;
+  /* Maintain the flex-basis settings so they sit side-by-side */
+  flex: 0 0 auto;
+}
+
+/* Ensure the cursor indicates it's a link */
+.mini-bookshelf a:hover {
+  cursor: pointer;
 }
