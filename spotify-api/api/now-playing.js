@@ -9,6 +9,7 @@ module.exports = async function(req, res) {
       return res.status(500).json({ error: 'Missing environment variables in Vercel' });
     }
 
+    // 1. REAL SPOTIFY TOKEN URL
     const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -28,6 +29,7 @@ module.exports = async function(req, res) {
     const tokenData = await tokenRes.json();
     const access_token = tokenData.access_token;
 
+    // 2. REAL SPOTIFY CURRENTLY PLAYING URL
     const nowRes = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
@@ -48,7 +50,8 @@ module.exports = async function(req, res) {
       return res.status(429).json({ error: 'Rate limited by Spotify. Try again later.' });
     }
 
-    const recentRes = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+    // 3. REAL SPOTIFY RECENTLY PLAYED URL
+    const recentRes = await fetch('https://api.spotify.com/v1/me/player/recently-played', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
