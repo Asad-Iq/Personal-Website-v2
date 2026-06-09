@@ -1117,6 +1117,11 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .a-slide {
   grid-column: 1 / -1;
   grid-row: 1 / -1;
+  /* Allow stacked slides to shrink to the track width instead of forcing
+     it wider than the viewport (grid items default to min-width:auto, which
+     let the wide bookshelf slide blow out the whole section on mobile). */
+  min-width: 0;
+  min-height: 0;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
@@ -1336,6 +1341,20 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .map-legend #map-visited-count { color: var(--red); }
 @media (max-width: 768px) {
   .map-legend { font-size: 0.52rem; gap: 0.7rem; padding: 0.4rem 0.6rem; }
+}
+
+/* On mobile the bookshelf is wider than the screen — let it scroll
+   horizontally inside the slide rather than stretching the section. */
+@media (max-width: 768px) {
+  .book-content {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mini-bookshelf {
+    justify-content: flex-start;
+    min-width: max-content;
+  }
 }
 
 /* ============================================================
