@@ -21,10 +21,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-  emailjs.init("444iXREWTMyGI15lX");
+    emailjs.init({
+      publicKey: "444iXREWTMyGI15lX",
+    });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
   <div id="popup" class="popup">
@@ -739,7 +739,10 @@ function sendEmail() {
       document.getElementById("email").value = "";
       document.getElementById("message").value = "";
     })
-    .catch(() => {
+    .catch((error) => {
+      // This line will print the exact reason for the failure in your browser console
+      console.error("EmailJS Error:", error); 
+      
       statusEl.textContent = "Failed to send message. Please email asad.aiqbal2005@gmail.com.";
       statusEl.style.color = "#c20000";
     });
