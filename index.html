@@ -815,26 +815,40 @@ function sendEmail() {
     }
   }
 
-  image.onload = () => { buildParticles(); animate(); };
-  if (image.complete && image.naturalWidth) { buildParticles(); animate(); }
-
   let isHeroVisible = true;
+  let particleAnimId = null;
   
   function animate() {
-    if (!isHeroVisible) return; // Pause calculation if out of view
+    // Stop the loop if scrolled out of view OR if particles haven't loaded yet
+    if (!isHeroVisible || particles.length === 0) {
+      particleAnimId = null;
+      return; 
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => { p.update(); p.draw(); });
-    requestAnimationFrame(animate);
+    particleAnimId = requestAnimationFrame(animate);
   }
 
   // Watch the hero section to pause/play the canvas
   const heroObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isHeroVisible = entry.isIntersecting;
-      if (isHeroVisible) animate(); // Resume when scrolled back to top
+      // Resume only if visible, particles are ready, and it's not already running
+      if (isHeroVisible && !particleAnimId && particles.length > 0) {
+        animate();
+      }
     });
   });
   heroObserver.observe(document.getElementById('home'));
+
+  // Safely initialize particles and start the loop
+  function initParticles() {
+    buildParticles();
+    if (isHeroVisible && !particleAnimId) animate();
+  }
+
+  image.onload = initParticles;
+  if (image.complete && image.naturalWidth) initParticles();
 
 })();
 </script>
