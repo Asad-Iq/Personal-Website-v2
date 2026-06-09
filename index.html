@@ -883,11 +883,28 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   if (slides.length === 0) return;
   let currentIndex = 0;
 
+  // On mobile the bio (slide 0) is shown as normal text outside the carousel,
+  // so the carousel only cycles the three widgets (indices 1–3).
+  const isMobileCarousel = () => window.matchMedia('(max-width: 768px)').matches;
+
+  function activateForViewport() {
+    if (isMobileCarousel() && currentIndex === 0) {
+      slides[0].classList.remove('active');
+      currentIndex = 1;
+      slides[1].classList.add('active');
+    }
+  }
+
   window.shiftSlide = function(step) {
     slides[currentIndex].classList.remove('active');
-    currentIndex = (currentIndex + step + slides.length) % slides.length;
+    if (isMobileCarousel()) {
+      // cycle within 1..3
+      currentIndex = ((currentIndex - 1 + step + 3) % 3) + 1;
+    } else {
+      currentIndex = (currentIndex + step + slides.length) % slides.length;
+    }
     slides[currentIndex].classList.add('active');
-    
+
     // Recalculate cradle canvas when slide becomes visible
     if (currentIndex === 1) {
       setTimeout(ncResize, 50);
@@ -897,6 +914,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (currentIndex === 2 && !window.mapRendered) {
       setTimeout(renderMap, 50);
       window.mapRendered = true;
+    }
+
+    // Re-fit the scaled bookshelf when it becomes visible
+    if (currentIndex === 3) {
+      setTimeout(fitBookshelf, 50);
     }
   };
 
@@ -1005,7 +1027,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     cradleCanvas.height = Math.round(ncH * ncDPR);
     cCtx.setTransform(ncDPR, 0, 0, ncDPR, 0, 0);  // draw in CSS pixels, render retina-sharp
     ncPendL = Math.min(ncH * 0.42, 190);
-    ncBallR = Math.min(ncW * 0.028, ncH * 0.075, 28);
+    // On narrow (mobile) canvases the width-based radius makes the balls tiny,
+    // so use a larger width factor there. Wide desktop canvases are unchanged.
+    const rFactorW = ncW < 520 ? 0.062 : 0.028;
+    ncBallR = Math.min(ncW * rFactorW, ncH * 0.075, 28);
     const totalW = NC * ncBallR * 2;
     const cx = ncW / 2, py = ncH * 0.26;
     ncPivots = Array.from({ length: NC }, (_, i) => ({
@@ -1445,8 +1470,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       "Mexico",
       "USA",
       "Canada",
-      "Brazil",
-      "Pakistan"
+      "Brazil"
 
   ];
     const visitedSet = new Set(VISITED.map(s => s.toLowerCase()));
@@ -1526,11 +1550,40 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
   }
 
+  // --- Library: scale the whole desktop shelf down to fit the mobile stage,
+  //     so every book is visible with no horizontal scroll. Desktop is left
+  //     completely alone (inline styles cleared above 768px). ---
+  function fitBookshelf() {
+    const shelf = document.querySelector('.mini-bookshelf');
+    if (!shelf) return;
+    const stage = shelf.parentElement; // .book-content
+    if (!isMobileCarousel()) {
+      shelf.style.transform = '';      // hand back to the desktop stylesheet
+      shelf.style.width = '';
+      return;
+    }
+    // Measure the shelf at its natural size
+    shelf.style.width = 'max-content';
+    shelf.style.transform = 'translate(-50%, -50%) scale(1)';
+    const natW = shelf.offsetWidth;
+    const natH = shelf.offsetHeight;
+    const availW = stage.clientWidth;
+    const availH = stage.clientHeight;
+    if (!natW || !natH || !availW || !availH) return;
+    const scale = Math.min(availW / natW, availH / natH) * 0.94; // small breathing room
+    shelf.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  }
+
   window.addEventListener('resize', () => {
+    activateForViewport();
     if (slides[1].classList.contains('active')) ncResize();
+    fitBookshelf();
   });
-  
+
+  // Pick the right starting slide for the viewport, then boot the cradle.
+  activateForViewport();
   setTimeout(initCradle, 100);
+  setTimeout(fitBookshelf, 200);
 })();
 </script>
 </body>
