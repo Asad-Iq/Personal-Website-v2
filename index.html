@@ -1340,12 +1340,18 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     ncDragIdx = ncNearest(mx, my);
     if (ncDragIdx >= 0) { ncVels[ncDragIdx] = 0; cradleCanvas.style.cursor = 'grabbing'; e.preventDefault(); }
   }
-  function ncMove(e) {
+ function ncMove(e) {
     const [mx, my] = ncXY(e);
     if (ncDragIdx >= 0) {
       const dx = mx - ncPivots[ncDragIdx].x, dy = my - ncPivots[ncDragIdx].y;
       let ang = Math.atan2(dx, Math.max(dy, ncPendL * 0.15));
-      ncAngles[ncDragIdx] = Math.max(-Math.PI * 0.58, Math.min(Math.PI * 0.58, ang));
+      
+      const px = ncPivots[ncDragIdx].x;
+      const maxDisp = dx < 0 ? (px - ncBallR - 2) : (ncW - px - ncBallR - 2);
+      const safeSin = Math.min(1, Math.max(0, maxDisp / ncPendL));
+      const maxAng = Math.min(Math.PI * 0.58, Math.asin(safeSin));
+
+      ncAngles[ncDragIdx] = Math.max(-maxAng, Math.min(maxAng, ang));
       ncVels[ncDragIdx] = 0;
       if (e.cancelable) e.preventDefault();
     } else {
@@ -1370,7 +1376,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     ncAngles = new Array(NC).fill(0);
     ncVels   = new Array(NC).fill(0);
     const k = Math.min(n, NC);
-    for (let i = 0; i < k; i++) ncAngles[i] = -Math.PI / 4;
+    
+    const px0 = ncPivots[0].x;
+    const safeSin = Math.min(1, Math.max(0, (px0 - ncBallR - 2) / ncPendL));
+    const safeAng = Math.min(Math.PI / 4, Math.asin(safeSin));
+    
+    for (let i = 0; i < k; i++) ncAngles[i] = -safeAng;
     ncHits = 0;
     ncE0   = ncEnergy() || 1;
     ncUpdateHUD();

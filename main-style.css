@@ -1399,7 +1399,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   .a-slide-header h3 { font-size: 1.6rem; }
 
   /* Arrows sit at the bottom of the widget stage (not over the bio) */
-  .slide-nav { top: auto; bottom: 14px; transform: none; }
+  .slide-nav { top: auto; bottom: calc(clamp(360px, 64vh, 460px) / 2); transform: translateY(50%); }
 
   /* ---- Newton's cradle ---- */
   .a-slide:nth-child(2) .cradle-controls {
@@ -1413,7 +1413,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
     padding: 0.3rem 0.5rem;
   }
   .cradle-hud { transform: scale(0.78); }
-  .a-slide:nth-child(2) .sim-hint { display: none; }
+  .sim-hint { display: none; }
 
   /* ---- Atlas / map: centre the wide map band inside the stage ---- */
   #map-svg-container { height: 100%; }
