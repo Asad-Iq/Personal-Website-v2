@@ -110,7 +110,7 @@
     <h1 class="hero-title">
       <span id="typing-text"></span><span class="cursor">_</span>
     </h1>
-    <p class="hero-sub">Physics 2nd year student · Gunner · Gallivanter · Petrolhead</p>
+    <p class="hero-sub">Physics Student · Gunner · Gallivanter · Petrolhead</p>
     <div class="hero-actions">
       <a href="#about" class="btn-primary">explore</a>
       <a href="#contact" class="btn-ghost">get in touch</a>
@@ -141,7 +141,7 @@
               I'm Asad — a Physics student with a passion for understanding how things work, whether that's the laws of the universe or the engineering of mechanical systems.
             </p>
             <p>There's always something on the workbench. Some weeks it's a coding project, some weeks it's a car on the driveway — usually because I convinced myself it would be a quick job. That's pretty much been the constant.
-            When I'm not tinkering, I'm usually chasing stories across borders, lost in a topic for longer than i intended, buried in a good book or at the piano. And on weekends, watching Arsenal systematically dismantle my will to live.
+            When I'm not tinkering, I'm usually chasing stories across borders, lost in a topic for longer than I intended, buried in a good book or at the piano. And on weekends, watching Arsenal systematically dismantle my will to live.
             The common thread through all of it is a love of learning, building, and exploring — whether that's a new place, a new idea, or a new challenge.
             </p>
             <p>
@@ -617,32 +617,29 @@ setTimeout(type, 400);
 const sections = document.querySelectorAll("section[id]");
 const navLinks  = document.querySelectorAll(".nav-links a");
 
-function setActiveLink() {
-  // Navbar background on scroll
+// 1. Handle navbar background purely on scroll (using passive for better performance)
+window.addEventListener("scroll", () => {
   document.getElementById("navbar").classList.toggle("scrolled", window.scrollY > 40);
+}, { passive: true });
 
-  // Find which section is currently in view
-  let current = "";
-  sections.forEach(section => {
-    const sectionTop    = section.offsetTop - 100; // offset for fixed navbar
-    const sectionBottom = sectionTop + section.offsetHeight;
-    if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
-      current = section.getAttribute("id");
+// 2. Handle active links with an Intersection Observer (Zero layout thrashing)
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.classList.remove("active-section");
+        if (link.getAttribute("href") === "#" + entry.target.id) {
+          link.classList.add("active-section");
+        }
+      });
     }
   });
+}, { rootMargin: "-40% 0px -60% 0px" }); // Triggers when section passes the top-middle
 
-  // Highlight the matching nav link
-  navLinks.forEach(link => {
-    link.classList.remove("active-section");
-    if (link.getAttribute("href") === "#" + current) {
-      link.classList.add("active-section");
-    }
-  });
-}
+sections.forEach(section => navObserver.observe(section));
 
-window.addEventListener("scroll", setActiveLink);
-// Run once on load so the correct link is highlighted immediately
-setActiveLink();
+// Run once on load for the navbar background
+document.getElementById("navbar").classList.toggle("scrolled", window.scrollY > 40);
 
 // ── Hamburger menu
 const hamburger = document.getElementById("hamburger");
@@ -821,11 +818,24 @@ function sendEmail() {
   image.onload = () => { buildParticles(); animate(); };
   if (image.complete && image.naturalWidth) { buildParticles(); animate(); }
 
+  let isHeroVisible = true;
+  
   function animate() {
+    if (!isHeroVisible) return; // Pause calculation if out of view
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => { p.update(); p.draw(); });
     requestAnimationFrame(animate);
   }
+
+  // Watch the hero section to pause/play the canvas
+  const heroObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      isHeroVisible = entry.isIntersecting;
+      if (isHeroVisible) animate(); // Resume when scrolled back to top
+    });
+  });
+  heroObserver.observe(document.getElementById('home'));
+
 })();
 </script>
 <script>
@@ -1315,13 +1325,24 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     ncRings = ncRings.filter(r => r.life > 0);
   }
 
+  let ncIsVisible = true;
+
   function ncLoop() {
-    if (!ncRunning) return;
+    if (!ncRunning || !ncIsVisible) return; // Pause calculation if out of view
     ncStep();
     ncDraw();
     if ((ncHudTick++ & 3) === 0) ncUpdateHUD();
     requestAnimationFrame(ncLoop);
   }
+
+  // Watch the cradle canvas to pause/play it
+  const cradleObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      ncIsVisible = entry.isIntersecting;
+      if (ncIsVisible && ncRunning) ncLoop(); // Resume
+    });
+  });
+  if (cradleCanvas) cradleObserver.observe(cradleCanvas);
 
   // ── Input ────────────────────────────────────────────
   function ncXY(e) {
