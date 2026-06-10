@@ -228,7 +228,7 @@
               <span class="ml-item"><i class="ml-swatch"></i> been there</span>
               <span class="ml-count"><span id="map-visited-count">0</span> countries</span>
             </div>
-            <div class="sim-hint">Hover a country to see its name</div>
+            <div class="sim-hint">hover over a country to see its name</div>
           </div>
         </div>
       </div>
@@ -305,6 +305,18 @@
     </a>
   </div>
 </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="a-slide">
+        <div class="interactive-full">
+          <div class="a-slide-header">
+            <h3>My Favourite Movies</h3>
+          </div>
+          <div class="a-slide-content movie-content">
+            <div id="movie-grid" class="movie-grid"></div>
+            <div class="sim-hint">hover over a poster for my verdict</div>
           </div>
         </div>
       </div>
@@ -924,6 +936,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   const slides = document.querySelectorAll('.a-slide');
   if (slides.length === 0) return;
   let currentIndex = 0;
+  const widgetCount = slides.length - 1;   // widgets are slide indices 1..N (auto-counts new slides)
 
   // On mobile the bio (slide 0) is shown as normal text outside the carousel,
   // so the carousel only cycles the three widgets (indices 1–3).
@@ -941,7 +954,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     slides[currentIndex].classList.remove('active');
     if (isMobileCarousel()) {
       // cycle within 1..3
-      currentIndex = ((currentIndex - 1 + step + 3) % 3) + 1;
+      currentIndex = ((currentIndex - 1 + step + widgetCount) % widgetCount) + 1;
     } else {
       currentIndex = (currentIndex + step + slides.length) % slides.length;
     }
@@ -961,6 +974,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     // Re-fit the scaled bookshelf when it becomes visible
     if (currentIndex === 3) {
       setTimeout(fitBookshelf, 50);
+    }
+
+    // Lazy-render the movie grid the first time Cinema (slide 4) opens
+    if (currentIndex === 4 && !window.moviesRendered) {
+      renderMovies();
+      window.moviesRendered = true;
     }
   };
 
@@ -1649,6 +1668,123 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   activateForViewport();
   setTimeout(initCradle, 100);
   setTimeout(fitBookshelf, 200);
+})();
+</script>
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   MY CINEMA — automated movie grid (TMDB)
+   1) Free key: themoviedb.org -> sign up -> Settings -> API -> request a
+      v3 "Developer" key. Paste the string into TMDB_API_KEY below.
+   2) Edit MY_FILMS: title + your rating (/10) + a one-line take.
+      `year` is optional but helps pick the right film when titles clash.
+   Poster, runtime, genre, release year and TMDB score are fetched for you.
+   Renders lazily the first time the Cinema slide opens (see shiftSlide).
+   ════════════════════════════════════════════════════════════════════ */
+(function(){
+  const TMDB_API_KEY = "8c3bf97cca619b6a1212b200bbe2d522";   // <-- paste your free TMDB v3 key here
+
+  const MY_FILMS = [
+    { title:"A Few Good Men",        year:1992, rating:9.6, take:"Where every conversation feels like a duel." },
+    { title:"Top Gun",   year:1986, rating:9.2, take:"Pure adrenaline and impossible not to love." },
+    { title:"Ford v Ferrari",      year:2019, rating:9.0, take:"Proof that obsession can create greatness." },
+    { title:"The Intouchables",            year:2011, rating:9.1, take:"The warmest film I've ever watched." },
+    { title:"Oppenheimer",         year:2023, rating:8.8, take:"Three hours of dread that earns every minute." },
+    { title:"The Godfather",  year:1972, rating:9.2, take:"The trilogy is a must watch" },
+    { title:"Batman Begins",            year:2005, rating:9.3, take:"The trilogy is a must watch" },
+    { title:"Wall Street",      year:1987, rating:8.9, take:"Greed has never looked so compelling." },
+      { title:"Blood Diamond", year:2006, rating:9.0, take:"A brutal reminder of what greed costs." },
+      { title:"Moneyball",       year:2011, rating:8.8, take:"Making statistics feel like magic." },
+      { title:"The Damned United",    year:2009, rating:8.7, take:"Ego, ambition, and football at their finest." },
+      { title:"The Big Short",       year:2015, rating:8.5, take:"The most entertaining economics lesson ever made." },
+      
+  ];
+
+  const IMG = (p,size="w500") => p ? `https://image.tmdb.org/t/p/${size}${p}` : null;
+  const cache = new Map();
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  async function fetchFilm(f){
+    const ck = `${f.title}|${f.year||""}`;
+    if (cache.has(ck)) return cache.get(ck);
+    const sp = new URLSearchParams({ api_key:TMDB_API_KEY, query:f.title, include_adult:"false", language:"en-US" });
+    if (f.year) sp.set("primary_release_year", f.year);
+    const sr = await fetch(`https://api.themoviedb.org/3/search/movie?${sp}`).then(r=>r.json());
+    const hit = (sr.results||[])[0];
+    if (!hit) throw new Error("no match");
+    const d = await fetch(`https://api.themoviedb.org/3/movie/${hit.id}?api_key=${TMDB_API_KEY}&language=en-US`).then(r=>r.json());
+    const out = {
+      title:   d.title || f.title,
+      year:    (d.release_date||"").slice(0,4),
+      poster:  IMG(d.poster_path,"w500"),
+      genre:  (d.genres||[]).slice(0,2).map(g=>g.name).join(" · "),
+      runtime: d.runtime ? `${d.runtime} min` : "",
+      tmdb:    d.vote_average ? d.vote_average.toFixed(1) : null,
+      overview:d.overview || "",
+      rating:  f.rating,
+      take:    f.take,
+    };
+    cache.set(ck, out);
+    return out;
+  }
+
+  function cardHTML(m){
+    const metaBits = [m.year, m.runtime, m.genre].filter(Boolean).join(" · ");
+    const poster = m.poster
+      ? `<img class="movie-poster" src="${m.poster}" alt="${esc(m.title)} poster" loading="lazy">`
+      : `<div class="movie-poster placeholder"><span>${esc(m.title)}</span></div>`;
+    const blurb = m.take || (m.overview ? m.overview.slice(0,110).trim()+"…" : "");
+    return `
+      <article class="movie-card" tabindex="0" aria-label="${esc(m.title)}, my rating ${m.rating} out of 10">
+        ${poster}
+        <span class="movie-chip">${m.rating}</span>
+        <div class="movie-overlay">
+          <div class="movie-rating"><span class="mr-num">${m.rating}</span><span class="mr-of">/10</span></div>
+          <span class="mr-label">my rating</span>
+          <div class="movie-title">${esc(m.title)}</div>
+          ${metaBits ? `<div class="movie-meta">${esc(metaBits)}</div>` : ``}
+          ${m.tmdb ? `<div class="movie-tmdb"><span class="star">★</span> ${m.tmdb} TMDB</div>` : ``}
+          ${blurb ? `<p class="movie-take">${esc(blurb)}</p>` : ``}
+        </div>
+      </article>`;
+  }
+
+  function enableTouch(grid){
+    if (!window.matchMedia("(hover:none)").matches) return;
+    grid.addEventListener("click", e=>{
+      const card = e.target.closest(".movie-card");
+      if (!card) return;
+      grid.querySelectorAll(".movie-card.is-open").forEach(c=>{ if(c!==card) c.classList.remove("is-open"); });
+      card.classList.toggle("is-open");
+    });
+  }
+
+  async function renderMovies(){
+    const grid = document.getElementById("movie-grid");
+    if (!grid || grid.dataset.done) return;
+    grid.dataset.done = "1";
+    grid.innerHTML = MY_FILMS.map(()=>`<div class="movie-card skeleton"></div>`).join("");
+
+    if (!TMDB_API_KEY){
+      grid.innerHTML = MY_FILMS.map(f=>cardHTML({ ...f })).join("");
+      const b = document.createElement("div");
+      b.className = "movie-banner";
+      b.innerHTML = `<b>Demo mode</b> - add your free TMDB key to <code>TMDB_API_KEY</code> for real posters &amp; data.`;
+      const host = grid.closest(".movie-content");
+      if (host) host.appendChild(b);
+      enableTouch(grid);
+      return;
+    }
+
+    const settled = await Promise.allSettled(MY_FILMS.map(fetchFilm));
+    grid.innerHTML = settled.map((res,i)=>{
+      if (res.status === "fulfilled") return cardHTML(res.value);
+      const f = MY_FILMS[i];
+      return `<article class="movie-card error"><p>Couldn't find <b>${esc(f.title)}</b>.<br>Check the title${f.year?` / year (${f.year})`:""}.</p></article>`;
+    }).join("");
+    enableTouch(grid);
+  }
+
+  window.renderMovies = renderMovies;   // called by shiftSlide when Cinema opens
 })();
 </script>
 </body>

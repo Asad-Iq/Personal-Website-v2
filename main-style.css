@@ -1716,3 +1716,128 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .mini-bookshelf a:hover {
   cursor: pointer;
 }
+
+/* ══════════ MY CINEMA — movie poster grid (about carousel) ══════════ */
+.movie-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:1rem;
+  padding:1.25rem 1.25rem 3rem;
+  height:100%;
+  overflow-y:auto;
+  align-content:start;
+}
+.movie-grid::-webkit-scrollbar{width:8px}
+.movie-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.movie-grid::-webkit-scrollbar-thumb:hover{background:var(--red)}
+
+.movie-card{
+  position:relative;
+  aspect-ratio:2/3;
+  border-radius:4px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--bg2);
+  cursor:default;
+  transition:transform var(--transition),box-shadow var(--transition),border-color var(--transition);
+}
+.movie-card:hover,.movie-card:focus-within{
+  transform:translateY(-4px);
+  border-color:var(--red);
+  box-shadow:var(--red-glow);
+  outline:none;
+}
+.movie-poster{width:100%;height:100%;object-fit:cover;display:block}
+
+.movie-poster.placeholder{
+  display:flex;align-items:flex-end;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 18px,rgba(255,255,255,.025) 18px 20px),
+    linear-gradient(150deg,var(--bg3),var(--bg));
+  padding:.9rem;
+}
+.movie-poster.placeholder span{
+  font-family:var(--font-disp);font-size:1.3rem;line-height:1.05;
+  color:var(--text-dim);letter-spacing:.03em;
+}
+
+.movie-chip{
+  position:absolute;top:8px;left:8px;z-index:3;
+  font-family:var(--font-disp);font-size:1rem;line-height:1;
+  color:#fff;background:var(--red);
+  padding:.28rem .42rem .18rem;border-radius:3px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);letter-spacing:.04em;
+  transition:opacity var(--transition);
+}
+
+.movie-overlay{
+  position:absolute;inset:0;z-index:2;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:1rem;gap:.15rem;
+  background:linear-gradient(0deg,rgba(11,11,11,.97) 0%,rgba(11,11,11,.93) 60%,rgba(11,11,11,.85) 100%);
+  -webkit-backdrop-filter:blur(3px) saturate(.85);
+  backdrop-filter:blur(3px) saturate(.85);
+  text-shadow:0 1px 6px rgba(0,0,0,.9);
+  transform:translateY(101%);
+  transition:transform .4s cubic-bezier(.2,.7,.2,1);
+}
+.movie-card:hover .movie-overlay,
+.movie-card:focus-within .movie-overlay{transform:translateY(0)}
+.movie-card:hover .movie-chip,
+.movie-card:focus-within .movie-chip{opacity:0}
+
+.movie-rating{display:flex;align-items:baseline;gap:.15rem}
+.mr-num{font-family:var(--font-disp);font-size:2.6rem;line-height:.85;color:var(--red)}
+.mr-of{font-family:var(--font-mono);font-size:.7rem;color:rgba(244,241,234,.65)}
+.mr-label{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(244,241,234,.7);
+  padding-bottom:.45rem;margin-bottom:.45rem;border-bottom:1px solid var(--red);
+  width:fit-content;
+}
+.movie-title{font-family:var(--font-disp);font-size:1.25rem;letter-spacing:.03em;color:#f6f3ee;line-height:1.05}
+.movie-meta{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.05em;color:rgba(244,241,234,.72);text-transform:uppercase}
+.movie-tmdb{font-family:var(--font-mono);font-size:.62rem;color:rgba(244,241,234,.6);margin-top:.1rem}
+.movie-tmdb .star{color:#e0b400;font-style:normal}
+.movie-take{font-family:var(--font-serif);font-style:italic;font-size:.92rem;color:rgba(244,241,234,.9);margin-top:.4rem;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.movie-card.skeleton{background:linear-gradient(100deg,var(--bg2) 30%,var(--surface) 50%,var(--bg2) 70%);background-size:200% 100%;animation:mvShimmer 1.3s linear infinite;border-color:var(--border)}
+@keyframes mvShimmer{to{background-position:-200% 0}}
+
+.movie-card.error{display:flex;align-items:center;justify-content:center;padding:1rem;text-align:center}
+.movie-card.error p{font-family:var(--font-mono);font-size:.62rem;color:var(--text-mid);line-height:1.6}
+.movie-card.error b{color:var(--red)}
+
+.movie-banner{
+  position:absolute;left:0;right:0;bottom:0;z-index:5;
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.03em;
+  color:var(--text-mid);background:rgba(13,13,13,.92);
+  border-top:1px solid var(--border);padding:.5rem .9rem;text-align:center;
+}
+.movie-banner b{color:var(--red)}
+.movie-banner code{color:var(--text)}
+
+@media (hover:none){
+  .movie-overlay{transform:translateY(calc(100% - 2.6rem))}
+  .movie-card.is-open .movie-overlay{transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+  .movie-card,.movie-overlay{transition:none}
+  .movie-card.skeleton{animation:none}
+}
+
+/* keep the hint readable where it floats over bright posters
+   (scoped to this slide; mobile still hides it like the other slides) */
+.movie-content .sim-hint{
+  z-index:4;
+  background:rgba(13, 13, 13, 0);
+  border:0px solid var(--border);
+  border-radius:3px;
+  padding:.32rem .6rem;
+  -webkit-backdrop-filter:blur(4px);
+  backdrop-filter:blur(4px);
+}
+@media (max-width:768px){
+  .movie-content .sim-hint{ display:none; }
+}
+/* ══════════════════════ end My Cinema ══════════════════════ */
