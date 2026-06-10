@@ -1881,6 +1881,11 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   flex-direction: column;
   align-items: flex-end;
   gap: 1rem;
+  /* The wrapper's invisible footprint (incl. the closed chat window's
+     reserved space) must NOT eat clicks meant for elements behind it,
+     e.g. the carousel's right arrow. Let clicks pass through the empty
+     wrapper; re-enable them only on the real interactive children below. */
+  pointer-events: none;
 }
 
 #ai-trigger-btn {
@@ -1897,6 +1902,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto; /* always clickable, even though the wrapper isn't */
 }
 #ai-trigger-btn:hover {
   transform: scale(1.08);
@@ -1917,6 +1923,7 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   transform-origin: bottom right;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+  pointer-events: auto; /* clickable when open; .ai-closed re-disables it */
 }
 #ai-chat-window.ai-closed {
   transform: scale(0.9) translateY(20px);
