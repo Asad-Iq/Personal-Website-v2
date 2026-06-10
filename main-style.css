@@ -1818,7 +1818,6 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .movie-banner code{color:var(--text)}
 
 @media (hover:none){
-  .movie-overlay{transform:translateY(calc(100% - 2.6rem))}
   .movie-card.is-open .movie-overlay{transform:translateY(0)}
 }
 @media (prefers-reduced-motion:reduce){
@@ -1839,5 +1838,36 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 }
 @media (max-width:768px){
   .movie-content .sim-hint{ display:none; }
+}
+@media (max-width:768px){
+  /* fit the fixed carousel stage: a horizontal poster strip sized to the
+     stage height — no nested vertical scroll, no oversized cards */
+  .movie-content .movie-grid{
+    display:flex;
+    flex-flow:row nowrap;
+    grid-template-columns:none;
+    gap:.75rem;
+    padding:1rem;
+    height:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .movie-content .movie-card{
+    flex:0 0 auto;
+    height:100%;
+    width:auto;
+    aspect-ratio:2/3;
+    scroll-snap-align:center;
+  }
+  /* backdrop-filter renders in banded artefacts on many mobile GPUs; the
+     scrim is already near-opaque, so drop the blur on mobile */
+  .movie-content .movie-overlay{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    transform:translateY(101%);
+  }
+  .movie-content .movie-card.is-open .movie-overlay{transform:translateY(0)}
 }
 /* ══════════════════════ end My Cinema ══════════════════════ */
