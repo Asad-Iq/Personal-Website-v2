@@ -50,6 +50,29 @@
     <button onclick="closePopup()">Got it</button>
   </div>
 </div>
+<div id="ai-companion-wrapper">
+  <div id="ai-chat-window" class="ai-closed">
+    <div class="ai-header">
+      <div class="ai-header-info">
+        <i class="fas fa-sparkles" style="color: var(--red);"></i>
+        <span>Companion</span>
+      </div>
+      <button class="ai-clear-btn" onclick="clearAIChat()" aria-label="Clear memory"><i class="fas fa-rotate-right"></i></button>
+      <button class="ai-close-btn" onclick="toggleAIChat()" aria-label="Close chat"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div id="ai-messages">
+      <div class="ai-msg ai-msg-system">This is a private space. Conversations are not saved.</div>
+      <div class="ai-msg ai-msg-bot">Hey. How are you doing today?</div>
+    </div>
+    <div class="ai-input-area">
+      <input type="text" id="ai-user-input" placeholder="Type something..." onkeypress="handleAIKeyPress(event)">
+      <button id="ai-send-btn" onclick="sendAIMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+  <button id="ai-trigger-btn" onclick="toggleAIChat()" aria-label="Open AI Companion">
+    <i class="fas fa-comment-dots"></i>
+  </button>
+</div>
 <!-- ═══════════════ NAVBAR ═══════════════ -->
 <header class="navbar" id="navbar">
   <div class="nav-logo">
@@ -1786,6 +1809,97 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
   window.renderMovies = renderMovies;   // called by shiftSlide when Cinema opens
 })();
+</script>
+<script>
+// ═══════════════ AI COMPANION LOGIC ═══════════════
+let aiChatHistory = [];
+const chatWindow = document.getElementById('ai-chat-window');
+const messagesContainer = document.getElementById('ai-messages');
+const aiInput = document.getElementById('ai-user-input');
+const aiSendBtn = document.getElementById('ai-send-btn');
+
+function toggleAIChat() {
+  chatWindow.classList.toggle('ai-closed');
+  if (!chatWindow.classList.contains('ai-closed')) {
+    aiInput.focus();
+    scrollToBottom();
+  }
+}
+
+function scrollToBottom() {
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function handleAIKeyPress(e) {
+  if (e.key === 'Enter') sendAIMessage();
+}
+
+function clearAIChat() {
+  aiChatHistory = [];
+  messagesContainer.innerHTML = `
+    <div class="ai-msg ai-msg-system">Memory cleared.</div>
+    <div class="ai-msg ai-msg-bot">A fresh start. What's on your mind?</div>
+  `;
+}
+
+function showTypingIndicator() {
+  const indicator = document.createElement('div');
+  indicator.className = 'ai-typing';
+  indicator.id = 'ai-typing-indicator';
+  indicator.innerHTML = '<span></span><span></span><span></span>';
+  messagesContainer.appendChild(indicator);
+  scrollToBottom();
+}
+
+function removeTypingIndicator() {
+  const indicator = document.getElementById('ai-typing-indicator');
+  if (indicator) indicator.remove();
+}
+
+async function sendAIMessage() {
+  const text = aiInput.value.trim();
+  if (!text) return;
+
+  // 1. Add User Message to UI
+  aiInput.value = '';
+  aiInput.disabled = true;
+  aiSendBtn.disabled = true;
+  
+  messagesContainer.innerHTML += `<div class="ai-msg ai-msg-user">${text}</div>`;
+  aiChatHistory.push({ role: "user", content: text });
+  scrollToBottom();
+
+  // 2. Show loading state
+  showTypingIndicator();
+
+  // 3. Call Vercel API
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: aiChatHistory })
+    });
+
+    const data = await response.json();
+    removeTypingIndicator();
+
+    if (response.ok) {
+      messagesContainer.innerHTML += `<div class="ai-msg ai-msg-bot">${data.reply}</div>`;
+      aiChatHistory.push({ role: "assistant", content: data.reply });
+    } else {
+      messagesContainer.innerHTML += `<div class="ai-msg ai-msg-system" style="color: var(--red);">Error: ${data.error}</div>`;
+    }
+  } catch (error) {
+    removeTypingIndicator();
+    messagesContainer.innerHTML += `<div class="ai-msg ai-msg-system" style="color: var(--red);">Connection lost. Try again.</div>`;
+  }
+
+  // 4. Restore input
+  aiInput.disabled = false;
+  aiSendBtn.disabled = false;
+  aiInput.focus();
+  scrollToBottom();
+}
 </script>
 </body>
 </html>
