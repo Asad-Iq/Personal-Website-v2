@@ -1901,5 +1901,231 @@ async function sendAIMessage() {
   scrollToBottom();
 }
 </script>
+<!-- ════════════════════════════════════════════════════════════════
+     LIVE MARKETS TICKER  ·  Asad Iqbal
+     A rounded "pill" overlaid at the top of the home hero
+     ----------------------------------------------------------------
+     HOW TO USE
+       Paste this entire block into index.html, just before </body>.
+       (Nothing else needs to change — no edits to main-style.css.)
+
+     WHAT IT DOES
+       • One capsule-shaped pill, centred at the top of the home hero,
+         tucked just under the navbar — home page only.
+       • Sits as an OVERLAY inside #home, so your hero stays exactly where
+         it is (nothing gets pushed down) and the #home anchor still lands
+         in the right place — clicking "home" shows it, no scrolling up.
+       • Width matches your site's content column (1200px, centred — the
+         same width as your other sections).
+       • Left: a red "● markets" tag with a blinking dot. Right: the live
+         scrolling price tape.
+       • Self-contained: styles scoped to #fin-ticker, JS in one IIFE.
+       • Inherits your theme via your CSS vars — matches dark & light.
+       • Live data from CoinGecko's free, keyless API. No account needed.
+
+     CUSTOMISE
+       Edit the ASSETS list below. `id` is the CoinGecko coin id
+       (see coingecko.com/en/coins), `sym` is the label shown.
+       REFRESH_MS = update interval · PX_PER_SEC = scroll speed
+       --ft-max = pill width · --ft-h = height · --ft-top = gap below nav.
+     ════════════════════════════════════════════════════════════════ -->
+
+<style>
+  #fin-ticker{
+    --ft-up: #3fb950;                       /* gains */
+    --ft-down: var(--red);                  /* losses (your site red) */
+    --ft-h: 40px;                           /* pill height */
+    --ft-max: 1150px;                       /* width — matches your sections/hero */
+    --ft-top: 2.75rem;                      /* gap between navbar and pill */
+
+    position: absolute;
+    top: calc(var(--nav-h) + var(--ft-top));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(var(--ft-max), calc(100% - 5rem));
+    z-index: 3;
+
+    height: var(--ft-h);
+    display: flex;
+    align-items: stretch;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    border: 1px solid var(--border);
+    border-radius: 999px;                   /* full capsule */
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+  [data-theme="light"] #fin-ticker{ background: rgba(245,242,238,0.85); }
+
+  #fin-ticker .ft-label{
+    display: flex; align-items: center; gap: 0.45rem;
+    padding: 0 1rem 0 1.3rem;
+    background: var(--red-dim);
+    border-right: 1px solid var(--border);
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.58rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  #fin-ticker .ft-dot{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    animation: ftPulse 1.5s ease infinite;
+  }
+  @keyframes ftPulse{ 0%,100%{ opacity: 1 } 50%{ opacity: 0.2 } }
+
+  #fin-ticker .ft-viewport{
+    position: relative; flex: 1; overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+  }
+  #fin-ticker .ft-track{
+    position: absolute; top: 50%; left: 0;
+    transform: translateY(-50%);
+    display: inline-flex; align-items: center; white-space: nowrap;
+    will-change: transform;
+    animation: ftScroll linear infinite;
+  }
+  #fin-ticker:hover .ft-track{ animation-play-state: paused; }
+  @keyframes ftScroll{
+    from{ transform: translate(0, -50%) }
+    to{   transform: translate(-50%, -50%) }
+  }
+
+  #fin-ticker .ft-item{ display: inline-flex; align-items: baseline; gap: 0.4rem; padding: 0 1.1rem; }
+  #fin-ticker .ft-sym{ color: var(--text); font-weight: 500; }
+  #fin-ticker .ft-price{ color: var(--text-mid); }
+  #fin-ticker .ft-chg{ font-weight: 500; font-size: 0.66rem; }
+  #fin-ticker .ft-chg.up{ color: var(--ft-up); }
+  #fin-ticker .ft-chg.down{ color: var(--ft-down); }
+  #fin-ticker .ft-msg{ display: flex; align-items: center; height: 100%; padding: 0 1.1rem; color: var(--text-dim); }
+
+  @media (prefers-reduced-motion: reduce){
+    #fin-ticker .ft-track{ animation: none; }
+  }
+  @media (max-width: 768px){
+    #fin-ticker{ width: calc(100% - 2.5rem); --ft-top: -0.3rem; }
+    #fin-ticker .ft-label{ padding-left: 1rem; }
+  }
+</style>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ── Configure your assets here ── */
+  var ASSETS = [
+    { id: "bitcoin",      sym: "BTC"  },
+    { id: "ethereum",     sym: "ETH"  },
+    { id: "solana",       sym: "SOL"  },
+    { id: "binancecoin",  sym: "BNB"  },
+    { id: "ripple",       sym: "XRP"  },
+    { id: "cardano",      sym: "ADA"  },
+    { id: "dogecoin",     sym: "DOGE" },
+    { id: "polkadot",     sym: "DOT"  }
+  ];
+  var REFRESH_MS = 60000;   // refresh interval (60s — friendly to the free API)
+  var PX_PER_SEC = 45;      // scroll speed (higher = faster)
+
+  /* ── Overlay the pill at the top of the home hero — home only ── */
+  function mount(){
+    var home = document.getElementById("home");
+    if(!home || document.getElementById("fin-ticker")) return;
+
+    var el = document.createElement("div");
+    el.id = "fin-ticker";
+    el.setAttribute("aria-label", "Live market prices");
+    el.innerHTML =
+      '<div class="ft-label"><span class="ft-dot"></span>markets</div>' +
+      '<div class="ft-viewport"><div class="ft-msg">loading markets…</div></div>';
+
+    home.insertBefore(el, home.firstChild);   // inside #home, positioned as an overlay
+
+    start(el.querySelector(".ft-viewport"));
+  }
+
+  /* ── Formatting helpers ── */
+  function fmtPrice(n){
+    if(n == null || isNaN(n)) return "—";
+    if(n >= 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    if(n >= 1)    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+  }
+  function fmtChg(c){
+    var up = c >= 0;
+    return { cls: up ? "up" : "down", txt: (up ? "▲" : "▼") + Math.abs(c).toFixed(2) + "%" };
+  }
+
+  /* ── Render the scrolling tape ── */
+  function render(viewport, rows){
+    if(!rows.length) return;
+    var itemsHTML = rows.map(function(r){
+      var c = fmtChg(r.chg);
+      return '<span class="ft-item">' +
+               '<span class="ft-sym">' + r.sym + '</span>' +
+               '<span class="ft-price">$' + fmtPrice(r.price) + '</span>' +
+               '<span class="ft-chg ' + c.cls + '">' + c.txt + '</span>' +
+             '</span>';
+    }).join("");
+
+    var track = document.createElement("div");
+    track.className = "ft-track";
+    track.innerHTML = itemsHTML + itemsHTML;        // duplicated for a seamless loop
+
+    viewport.innerHTML = "";
+    viewport.appendChild(track);
+
+    /* Constant speed regardless of how many assets / how wide the screen */
+    requestAnimationFrame(function(){
+      var half = track.scrollWidth / 2;
+      if(half > 0) track.style.animationDuration = (half / PX_PER_SEC) + "s";
+    });
+  }
+
+  function showMsg(viewport, text){
+    if(viewport.querySelector(".ft-track")) return;  // keep last good data on screen
+    viewport.innerHTML = '<div class="ft-msg">' + text + '</div>';
+  }
+
+  /* ── Fetch + loop ── */
+  function start(viewport){
+    var ids = ASSETS.map(function(a){ return a.id; }).join(",");
+    var url = "https://api.coingecko.com/api/v3/simple/price?ids=" + ids +
+              "&vs_currencies=usd&include_24hr_change=true";
+
+    function tick(){
+      fetch(url, { cache: "no-store" })
+        .then(function(res){ if(!res.ok) throw new Error(res.status); return res.json(); })
+        .then(function(data){
+          var rows = [];
+          ASSETS.forEach(function(a){
+            var d = data[a.id];
+            if(d && typeof d.usd === "number"){
+              rows.push({ sym: a.sym, price: d.usd, chg: d.usd_24h_change || 0 });
+            }
+          });
+          if(rows.length) render(viewport, rows);
+          else showMsg(viewport, "markets unavailable");
+        })
+        .catch(function(){ showMsg(viewport, "markets unavailable — retrying…"); });
+    }
+
+    tick();
+    setInterval(tick, REFRESH_MS);
+  }
+
+  if(document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", mount);
+  else
+    mount();
+})();
+</script>
 </body>
 </html>
