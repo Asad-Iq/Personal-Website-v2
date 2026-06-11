@@ -105,6 +105,11 @@
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
+  <div class="finance-ticker" id="finance-ticker">
+  <div class="ticker-track" id="ticker-track">
+    <span class="t-item" style="color: var(--text-dim);">INITIALIZING MARKET DATA STREAM...</span>
+  </div>
+</div>
 </header>
 
 <!-- Mobile nav drawer -->
@@ -1900,6 +1905,90 @@ async function sendAIMessage() {
   aiInput.focus();
   scrollToBottom();
 }
+</script>
+<script>
+// ═══════════════ LIVE WEBSOCKET TICKER ═══════════════
+(function() {
+  const API_KEY = 'd8laot9r01qtamgtm3mgd8laot9r01qtamgtm3n0'; 
+  const SYMBOLS = ['AAPL', 'TSLA', 'MSFT', 'AMZN', 'NVDA', 'GOOGL'];
+  
+  const track = document.getElementById('ticker-track');
+  const priceState = {};
+
+  // Build the DOM: We duplicate the list 3 times to allow the CSS marquee to loop seamlessly
+  function initTickerDOM() {
+    track.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    
+    for (let i = 0; i < 3; i++) {
+      SYMBOLS.forEach(sym => {
+        const item = document.createElement('div');
+        item.className = 't-item';
+        item.innerHTML = `<span class="t-sym">${sym}</span><span class="t-price" id="t-${sym}-${i}">---</span>`;
+        fragment.appendChild(item);
+        
+        // Track the element references for O(1) DOM updates
+        if (!priceState[sym]) priceState[sym] = { price: 0, elements: [] };
+        priceState[sym].elements.push(item.querySelector('.t-price'));
+      });
+    }
+    track.appendChild(fragment);
+  }
+
+  function connectFinnhub() {
+    const socket = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
+
+    socket.addEventListener('open', function () {
+      SYMBOLS.forEach(sym => {
+        socket.send(JSON.stringify({'type':'subscribe', 'symbol': sym}));
+      });
+    });
+
+    socket.addEventListener('message', function (event) {
+      const response = JSON.parse(event.data);
+      if (response.type === 'trade' && response.data) {
+        
+        // Only process the most recent trade in the payload bundle
+        response.data.forEach(trade => {
+          const sym = trade.s;
+          const newPrice = trade.p.toFixed(2);
+          
+          if (priceState[sym]) {
+            const oldPrice = priceState[sym].price;
+            
+            if (newPrice !== oldPrice && oldPrice !== 0) {
+              const direction = newPrice > oldPrice ? 'up' : 'down';
+              const arrow = direction === 'up' ? '▲' : '▼';
+              
+              priceState[sym].elements.forEach(el => {
+                el.textContent = `${arrow} $${newPrice}`;
+                el.className = `t-price ${direction} t-flash`;
+                
+                // Strip the flash class so it can be re-triggered on the next tick
+                setTimeout(() => el.classList.remove('t-flash'), 600);
+              });
+            } else if (oldPrice === 0) {
+              // Initial load (no arrow, just the price)
+              priceState[sym].elements.forEach(el => el.textContent = `$${newPrice}`);
+            }
+            priceState[sym].price = newPrice;
+          }
+        });
+      }
+    });
+
+    // Reconnect logic in case the socket drops
+    socket.addEventListener('close', function() {
+      setTimeout(connectFinnhub, 5000);
+    });
+  }
+
+  // Initialize
+  if(API_KEY !== 'd8laot9r01qtamgtm3mgd8laot9r01qtamgtm3n0') {
+    initTickerDOM();
+    connectFinnhub();
+  }
+})();
 </script>
 </body>
 </html>
