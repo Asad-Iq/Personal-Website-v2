@@ -42,14 +42,6 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-  <div id="popup" class="popup">
-  <div class="popup-content">
-    <h2>Site Under Development</h2>
-    <p>Hi there! Spotted a bug or have a suggestion?</p>
-    <p><a href="#contact" style="color: var(--red)" onclick="closePopup()">Get in touch</a></p>
-    <button onclick="closePopup()">Got it</button>
-  </div>
-</div>
 <div id="ai-companion-wrapper">
   <div id="ai-chat-window" class="ai-closed">
     <div class="ai-header">
@@ -926,15 +918,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
   });
 });
-</script>
-<script>
-  window.onload = function () {
-    document.getElementById("popup").style.display = "flex";
-  };
-
-  function closePopup() {
-    document.getElementById("popup").style.display = "none";
-  }
 </script>
 <script>
   async function loadSpotify() {
