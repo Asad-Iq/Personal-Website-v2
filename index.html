@@ -1885,36 +1885,13 @@ async function sendAIMessage() {
   scrollToBottom();
 }
 </script>
-<!-- 
-════════════════════════════════════════════════════════════════
-     LIVE MARKETS TICKER  ·  Asad Iqbal
+<!--LIVE MARKETS TICKER
      A rounded "pill" overlaid at the top of the home hero
-     ----------------------------------------------------------------
-     HOW TO USE
-       Paste this entire block into index.html, just before </body>.
-       (Nothing else needs to change — no edits to main-style.css.)
-
-     WHAT IT DOES
-       • One capsule-shaped pill, centred at the top of the home hero,
-         tucked just under the navbar — home page only.
-       • Sits as an OVERLAY inside #home, so your hero stays exactly where
-         it is (nothing gets pushed down) and the #home anchor still lands
-         in the right place — clicking "home" shows it, no scrolling up.
-       • Width matches your site's content column (1200px, centred — the
-         same width as your other sections).
-       • Left: a red "● markets" tag with a blinking dot. Right: the live
-         scrolling price tape.
-       • Self-contained: styles scoped to #fin-ticker, JS in one IIFE.
-       • Inherits your theme via your CSS vars — matches dark & light.
-       • Live data from CoinGecko's free, keyless API. No account needed.
-
      CUSTOMISE
        Edit the ASSETS list below. `id` is the CoinGecko coin id
        (see coingecko.com/en/coins), `sym` is the label shown.
        REFRESH_MS = update interval · PX_PER_SEC = scroll speed
-       --ft-max = pill width · --ft-h = height · --ft-top = gap below nav.
-     ════════════════════════════════════════════════════════════════ 
-     -->
+       ft-max = pill width · ft-h = height · ft-top = gap below nav.-->
 
 <style>
   #fin-ticker{
