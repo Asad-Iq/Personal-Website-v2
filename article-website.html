@@ -27,6 +27,11 @@
     .article-footer-nav { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
     .article-footer-nav a { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--text-dim); transition: color var(--transition); }
     .article-footer-nav a:hover { color: var(--red); }
+
+    /* ── Comments (giscus) ── */
+    .comments-section { margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
+    .comments-heading { font-family: var(--font-disp); font-size: 1.7rem; letter-spacing: 0.05em; color: var(--text); margin-bottom: 1.5rem; }
+    .giscus, .giscus-frame { width: 100%; }
   </style>
 </head>
 <body>
@@ -118,6 +123,26 @@ for (let y = 0; y &lt; canvas.height; y += 4) {
     <p>The source is on <a href="https://github.com/asad-iq" style="color:var(--red)">GitHub</a> if you want to poke around.</p>
   </div>
 
+  <section class="comments-section" id="comments">
+    <h2 class="comments-heading">Comments</h2>
+    <script src="https://giscus.app/client.js"
+            data-repo="Asad-Iq/Personal-Website-v2"
+            data-repo-id="R_kgDOSyRQpQ"
+            data-category="Announcements"
+            data-category-id="DIC_kwDOSyRQpc4C_AgI"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="top"
+            data-theme="preferred_color_scheme"
+            data-lang="en"
+            data-loading="lazy"
+            crossorigin="anonymous"
+            async>
+    </script>
+  </section>
+
   <div class="article-footer-nav">
     <a href="article-thoughts-modern-relationships.html">← thoughts on modern relationships</a>
     <a href="article-physics.html">next: project →</a>
@@ -151,6 +176,31 @@ function closeMobileNav(){document.getElementById("hamburger").classList.remove(
       }
     });
   });
+</script>
+<script>
+/* ── Sync giscus theme with the site's light/dark toggle ── */
+(function () {
+  function giscusTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  }
+  function sendTheme() {
+    var frame = document.querySelector("iframe.giscus-frame");
+    if (!frame || !frame.contentWindow) return;
+    frame.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: giscusTheme() } } },
+      "https://giscus.app"
+    );
+  }
+  // giscus posts a message once its iframe is ready — match the site theme then
+  window.addEventListener("message", function (e) {
+    if (e.origin !== "https://giscus.app" || !e.data || !e.data.giscus) return;
+    sendTheme();
+  });
+  // keep in sync when the visitor flips the site theme toggle afterwards
+  new MutationObserver(sendTheme).observe(document.documentElement, {
+    attributes: true, attributeFilter: ["data-theme"]
+  });
+})();
 </script>
 </body>
 </html>
