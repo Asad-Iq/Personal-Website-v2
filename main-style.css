@@ -933,8 +933,8 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   .hamburger { display: flex; }
   .mobile-nav { display: flex; }
 
-  .hero-section { grid-template-columns: 1fr; padding-top: calc(var(--nav-h) + 1rem); }
-  .hero-bg { order: -1; padding: 4rem 0rem 0; }
+  .hero-section { grid-template-columns: 1fr; grid-template-rows: 1fr auto; padding-top: calc(var(--nav-h) + 1rem); }
+  .hero-bg { order: -1; padding: 0 2rem; }   /* photo area flexes; centred between pill and Spotify */
   .hero-photo-frame { width: min(300px, 85%); }
   .hero-content { padding: 1.5rem 2rem 2rem; }
   .hero-scroll-hint { display: none; }
