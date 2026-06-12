@@ -2,7 +2,7 @@
  * Bump CACHE_VERSION whenever you change precached files (CSS/HTML/icons)
  * so returning visitors get the update.
  */
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME = `runtime-${CACHE_VERSION}`;
 
