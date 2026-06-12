@@ -32,21 +32,40 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+  {
+    "src": "screenshots/desktop.png",
+    "sizes": "1280x720",
+    "type": "image/png",
+    "form_factor": "wide",
+    "label": "Asad Iqbal — home page (desktop)"
+  },
+  {
+    "src": "screenshots/mobile.png",
+    "sizes": "720x1280",
+    "type": "image/png",
+    "form_factor": "narrow",
+    "label": "Asad Iqbal — home page (mobile)"
+  }
+],
   "shortcuts": [
     {
       "name": "Photography",
       "url": "./portfolio.html",
-      "description": "View the full photo portfolio"
+      "description": "View the full photo portfolio",
+      "icons": [{ "src": "icons/shortcut-photography.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Arcade",
       "url": "./index.html#games",
-      "description": "Play the browser games"
+      "description": "Play the browser games",
+      "icons": [{ "src": "icons/shortcut-arcade.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Writing",
       "url": "./index.html#writing",
-      "description": "Read the field notes"
+      "description": "Read the field notes",
+      "icons": [{ "src": "icons/shortcut-writing.png", "sizes": "96x96", "type": "image/png" }]
     }
   ]
 }
