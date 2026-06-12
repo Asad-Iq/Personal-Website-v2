@@ -34,14 +34,14 @@
   ],
   "screenshots": [
   {
-    "src": "screenshots/desktop.png",
+    "src": "Screenshots/desktop.png",
     "sizes": "1280x720",
     "type": "image/png",
     "form_factor": "wide",
     "label": "Asad Iqbal — home page (desktop)"
   },
   {
-    "src": "screenshots/mobile.png",
+    "src": "Screenshots/mobile.png",
     "sizes": "720x1280",
     "type": "image/png",
     "form_factor": "narrow",
