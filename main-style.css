@@ -2010,3 +2010,13 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   #ai-companion-wrapper { bottom: 1rem; right: 1rem; }
   #ai-chat-window { width: calc(100vw - 2rem); height: 400px; }
 }
+
+/* ── PWA install button (mobile menu only) ── */
+#install-pwa {
+  margin-top: 1.5rem;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 2px;
+}
+#install-pwa[hidden] { display: none !important; }

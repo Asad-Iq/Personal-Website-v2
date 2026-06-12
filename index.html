@@ -122,6 +122,9 @@
   <a href="#writing"     onclick="closeMobileNav()">writing</a>
   <a href="#games"       onclick="closeMobileNav()">games</a>
   <a href="#contact"     onclick="closeMobileNav()">contact</a>
+  <button id="install-pwa" class="btn-primary" hidden>
+    <i class="fas fa-download"></i>&nbsp;install app
+  </button>
 </div>
 
 <!-- ═══════════════ HERO ═══════════════ -->
@@ -2122,6 +2125,56 @@ async function sendAIMessage() {
       });
     });
   }
+</script>
+<!-- ── PWA install button (mobile only) ── -->
+<script>
+(function () {
+  var btn = document.getElementById("install-pwa");
+  if (!btn) return;
+
+  var deferredPrompt = null;
+  var mobileQuery = window.matchMedia("(max-width: 768px)");
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true;
+  }
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+  }
+  function reveal() {
+    if (mobileQuery.matches && !isStandalone()) btn.hidden = false;
+  }
+
+  // Chromium / Android: capture the native install prompt
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    reveal();
+  });
+
+  // iOS Safari never fires the event above -> show the button with manual steps
+  if (isIOS() && !isStandalone()) { btn.dataset.ios = "1"; reveal(); }
+
+  btn.addEventListener("click", function () {
+    if (btn.dataset.ios === "1") {
+      alert("To install: tap the Share icon, then choose “Add to Home Screen”.");
+      return;
+    }
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () {
+      deferredPrompt = null;
+      btn.hidden = true;
+    });
+  });
+
+  // Hide the button once the app is installed
+  window.addEventListener("appinstalled", function () {
+    btn.hidden = true;
+    deferredPrompt = null;
+  });
+})();
 </script>
 </body>
 </html>
