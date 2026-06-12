@@ -40,6 +40,20 @@
     });
   </script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16181d">
+
+<!-- Icons / favicons -->
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- iOS standalone behaviour -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Asad Iqbal">
 </head>
 <body>
 <div id="ai-companion-wrapper">
@@ -2089,6 +2103,25 @@ async function sendAIMessage() {
   else
     mount();
 })();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").then(function (reg) {
+        // When a new service worker is found, activate it on next load.
+        reg.addEventListener("updatefound", function () {
+          var sw = reg.installing;
+          sw && sw.addEventListener("statechange", function () {
+            if (sw.state === "installed" && navigator.serviceWorker.controller) {
+              sw.postMessage("SKIP_WAITING");
+            }
+          });
+        });
+      }).catch(function (err) {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
 </script>
 </body>
 </html>

@@ -1,0 +1,52 @@
+{
+  "name": "Asad Iqbal",
+  "short_name": "Asad Iqbal",
+  "description": "Personal website of Asad Iqbal — physics student, writer, photographer, and tinkerer.",
+  "id": "/",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#16181d",
+  "theme_color": "#16181d",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["personal", "portfolio"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Photography",
+      "url": "./portfolio.html",
+      "description": "View the full photo portfolio"
+    },
+    {
+      "name": "Arcade",
+      "url": "./index.html#games",
+      "description": "Play the browser games"
+    },
+    {
+      "name": "Writing",
+      "url": "./index.html#writing",
+      "description": "Read the field notes"
+    }
+  ]
+}
