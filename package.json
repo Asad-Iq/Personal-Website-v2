@@ -1,0 +1,9 @@
+{
+  "name": "asadiqbal-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal site + store with Stripe checkout",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}
