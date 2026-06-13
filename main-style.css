@@ -1031,8 +1031,11 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
    2) Tighten the space around the Spotify pill — especially the gap
       below it down to the text. */
 @media (max-width: 768px) {
-  .hero-bg { padding-top: 3rem; }          /* clears the overlaid ticker + balances the centring */
-  #spotify-widget { margin: 0.5rem 0 0; }  /* small top margin, no bottom gap; flex gap handles spacing to text */
+  /* Photo centred in the band between the overlaid ticker and the Spotify pill.
+     2.75rem top clears the ~19px the ticker overlaps + balances against the
+     1.5rem of .hero-content top padding below the photo. */
+  .hero-bg { padding-top: 2.75rem; }
+  #spotify-widget { margin: 0; }  /* no margin at all; the 1.25rem flex gap is the only space down to the text */
 }
 
 /* ============================================================
@@ -2032,8 +2035,11 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   border-radius: 2px;
 }
 #install-pwa[hidden] { display: none !important; }
-/* ── Store link: button in hero on desktop, hamburger on mobile ── */
+/* ── Store link: button in hero on desktop, hamburger only on mobile ── */
 .hero-store-btn { display: inline-block; }
 @media (max-width: 768px) {
-  .hero-store-btn { display: none; }
+  /* Hide by class and by href, with !important, so nothing can re-show it
+     on mobile regardless of class/specificity. Store stays in the hamburger. */
+  .hero-store-btn,
+  .hero-actions a[href*="Store" i] { display: none !important; }
 }
