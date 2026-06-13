@@ -166,6 +166,7 @@ body {
   letter-spacing: 0.2em;
   color: var(--text-dim);
   text-transform: uppercase;
+  align-items: center; justify-content: center; display: flex; gap: 0.5rem;
 }
 
 /* header right cluster: toggle + mode buttons */
