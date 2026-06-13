@@ -1023,6 +1023,18 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── Mobile-only hero tweaks ──
+   Placed after the #spotify-widget rules so these win the cascade.
+   1) Push the photo down so it sits visually centred in the gap between
+      the (overlaid) markets ticker and the Spotify pill.
+   2) Tighten the space around the Spotify pill — especially the gap
+      below it down to the text. */
+@media (max-width: 768px) {
+  .hero-bg { padding-top: 3rem; }          /* clears the overlaid ticker + balances the centring */
+  #spotify-widget { margin: 0.5rem 0 0; }  /* small top margin, no bottom gap; flex gap handles spacing to text */
+}
+
 /* ============================================================
    ABOUT FULL CAROUSEL
    ============================================================ */
