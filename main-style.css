@@ -341,8 +341,9 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   text-transform: uppercase;
   padding: 0.75rem 1.8rem;
   background: transparent;
-  color: var(--text-mid);
+  color: #fff;
   border: 1px solid var(--border);
+  fill: #000;
   transition: all var(--transition);
   display: inline-block;
 }
