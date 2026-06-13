@@ -1,0 +1,65 @@
+{
+  "currency": "gbp",
+  "products": [
+    {
+      "id": "print-apex",
+      "name": "Apex — Fine Art Print",
+      "category": "prints",
+      "price": 35.00,
+      "description": "A1 giclée print on archival matte stock. Long-exposure of a night circuit, shot and graded by hand.",
+      "image": "images/print-apex.jpg",
+      "stock": 12,
+      "paymentLink": ""
+    },
+    {
+      "id": "print-orbit",
+      "name": "Orbit — Fine Art Print",
+      "category": "prints",
+      "price": 35.00,
+      "description": "A1 giclée print. Star-trail composite from a cold night on the moors.",
+      "image": "images/print-orbit.jpg",
+      "stock": 8,
+      "paymentLink": ""
+    },
+    {
+      "id": "tee-eqn",
+      "name": "First Principles Tee",
+      "category": "apparel",
+      "price": 24.00,
+      "description": "Heavyweight organic cotton tee, screen-printed front. A quiet equation, no logos.",
+      "image": "images/tee-eqn.jpg",
+      "stock": 40,
+      "paymentLink": ""
+    },
+    {
+      "id": "hoodie-grid",
+      "name": "Grid Logic Hoodie",
+      "category": "apparel",
+      "price": 52.00,
+      "description": "Brushed-back heavyweight hoodie. Embroidered chest mark, relaxed fit.",
+      "image": "images/hoodie-grid.jpg",
+      "stock": 25,
+      "paymentLink": ""
+    },
+    {
+      "id": "mug-redline",
+      "name": "Redline Enamel Mug",
+      "category": "objects",
+      "price": 14.00,
+      "description": "Enamel camp mug with a single red line at the rim. For garage coffee.",
+      "image": "images/mug-redline.jpg",
+      "stock": 60,
+      "paymentLink": ""
+    },
+    {
+      "id": "sticker-pack",
+      "name": "Sticker Pack — Set of 6",
+      "category": "objects",
+      "price": 6.00,
+      "description": "Die-cut weatherproof vinyl. Six designs from the archive.",
+      "image": "images/sticker-pack.jpg",
+      "stock": 200,
+      "paymentLink": ""
+    }
+  ]
+}

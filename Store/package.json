@@ -1,0 +1,9 @@
+{
+  "name": "asad-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Storefront with Stripe checkout for asadiqbal.site",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}

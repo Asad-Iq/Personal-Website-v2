@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order confirmed · Asad Iqbal</title>
+  <meta name="theme-color" content="#16181d">
+  <link rel="stylesheet" href="../main-style.css">
+  <link rel="stylesheet" href="store.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="result-wrap">
+    <div class="result-icon ok"><i class="fas fa-circle-check"></i></div>
+    <h1>Order confirmed</h1>
+    <p>Thanks — your payment went through. A receipt and order confirmation are on their way to your inbox from Stripe.</p>
+    <p>You'll get a second email with tracking once your order ships.</p>
+    <p class="ref" id="ref"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn-primary">keep shopping</a>
+      <a href="../index.html#home" class="btn-ghost">back to site</a>
+    </div>
+  </div>
+  <script>
+    // Clear the cart now the order is placed, and show the reference.
+    try { localStorage.removeItem("store_cart_v1"); } catch (e) {}
+    var sid = new URLSearchParams(location.search).get("session_id");
+    if (sid) document.getElementById("ref").textContent = "Reference: " + sid;
+  </script>
+</body>
+</html>

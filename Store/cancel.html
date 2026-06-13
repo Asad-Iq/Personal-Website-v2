@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout cancelled · Asad Iqbal</title>
+  <meta name="theme-color" content="#16181d">
+  <link rel="stylesheet" href="../main-style.css">
+  <link rel="stylesheet" href="store.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="result-wrap">
+    <div class="result-icon"><i class="fas fa-circle-xmark"></i></div>
+    <h1>Checkout cancelled</h1>
+    <p>No charge was made. Your cart is still saved, so you can pick up where you left off whenever you're ready.</p>
+    <div class="result-actions">
+      <a href="index.html" class="btn-primary">return to store</a>
+      <a href="../index.html#home" class="btn-ghost">back to site</a>
+    </div>
+  </div>
+</body>
+</html>

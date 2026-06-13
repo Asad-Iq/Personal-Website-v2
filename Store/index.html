@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    /* Apply theme before paint — shares the same key as the main site */
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store · Asad Iqbal</title>
+  <meta name="description" content="Prints, apparel and objects from the archive.">
+  <meta name="theme-color" content="#16181d">
+
+  <link rel="stylesheet" href="../main-style.css">
+  <link rel="stylesheet" href="store.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="../favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+
+  <!-- Stripe.js — only used at checkout. Safe publishable usage; no secrets here. -->
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<header class="navbar scrolled" id="navbar">
+  <a class="nav-logo" href="../index.html#home" aria-label="Back to home">
+    <span class="nav-name">Asad Iqbal</span>
+    <span class="nav-dot">.</span>
+  </a>
+
+  <nav class="nav-links">
+    <a href="../index.html#home">home</a>
+    <a href="../index.html#about">about</a>
+    <a href="../index.html#experience">experience</a>
+    <a href="../index.html#photography">photography</a>
+    <a href="../index.html#writing">writing</a>
+    <a href="../index.html#games">games</a>
+    <a href="index.html" class="active-section">store</a>
+    <a href="../index.html#contact">contact</a>
+  </nav>
+
+  <div class="nav-socials">
+    <a href="https://github.com/asad-iq" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+    <a href="https://linkedin.com/in/asad-i-79b5a4239/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+    <a href="https://instagram.com/asad.ai_/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="https://open.spotify.com/user/313bojjrnmauwcmti5zsjgmrueyy" target="_blank" aria-label="Spotify"><i class="fab fa-spotify"></i></a>
+  </div>
+
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+    <i id="theme-icon" class="fas fa-moon"></i>
+    <span id="theme-label">dark</span>
+  </button>
+
+  <button class="nav-cart" id="cart-toggle" aria-label="Open cart">
+    <i class="fas fa-bag-shopping"></i>
+    <span class="cart-count" id="cart-count">0</span>
+  </button>
+
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="../index.html#home"        onclick="closeMobileNav()">home</a>
+  <a href="../index.html#about"       onclick="closeMobileNav()">about</a>
+  <a href="../index.html#experience"  onclick="closeMobileNav()">experience</a>
+  <a href="../index.html#photography" onclick="closeMobileNav()">photography</a>
+  <a href="../index.html#writing"     onclick="closeMobileNav()">writing</a>
+  <a href="../index.html#games"       onclick="closeMobileNav()">games</a>
+  <a href="index.html"                     onclick="closeMobileNav()">store</a>
+  <a href="../index.html#contact"     onclick="closeMobileNav()">contact</a>
+</div>
+
+<!-- ═══════════════ STORE ═══════════════ -->
+<main class="store-main">
+  <div class="store-head">
+    <div class="store-head-top">
+      <div>
+        <span class="store-eyebrow">// the shop</span>
+        <h1 class="store-title">Store</h1>
+      </div>
+      <a class="store-back" href="../index.html#home"><i class="fas fa-arrow-left"></i>back to site</a>
+    </div>
+
+    <div class="store-controls">
+      <div class="search-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" id="search" class="search-input"
+               placeholder="search products…" aria-label="Search products" autocomplete="off">
+        <button class="search-clear" id="search-clear" aria-label="Clear search" hidden>
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="filter-chips" id="filter-chips"><!-- categories injected --></div>
+    </div>
+  </div>
+
+  <section class="product-grid" id="product-grid" aria-live="polite">
+    <div class="store-msg">loading the shelves…</div>
+  </section>
+</main>
+
+<!-- ═══════════════ CART DRAWER ═══════════════ -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart" aria-hidden="true">
+  <div class="cart-header">
+    <h2>Cart</h2>
+    <button class="cart-close" id="cart-close" aria-label="Close cart"><i class="fas fa-xmark"></i></button>
+  </div>
+
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty" id="cart-empty">
+      <i class="fas fa-bag-shopping"></i>
+      Your cart is empty.
+    </div>
+  </div>
+
+  <div class="cart-footer" id="cart-footer" hidden>
+    <div class="cart-total">
+      <span>Total</span>
+      <strong id="cart-total-val"><span class="cur">£</span>0.00</strong>
+    </div>
+    <button class="btn-primary checkout-btn" id="checkout-btn">checkout</button>
+    <div class="checkout-status" id="checkout-status"></div>
+    <p class="cart-note"><i class="fas fa-lock"></i> Secure payment by Stripe. Tax &amp; shipping calculated at checkout.</p>
+  </div>
+</aside>
+
+<script src="store.js"></script>
+</body>
+</html>
