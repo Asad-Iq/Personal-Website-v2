@@ -14,9 +14,11 @@
      ───────────────────────────────────────────────────────── */
   var CONFIG = {
     // Your serverless endpoint that creates a Stripe Checkout Session.
-    // Netlify default shown; for Vercel use "/api/create-checkout-session".
+    // The site is hosted on GitHub Pages (can't run functions), so this points
+    // at the Netlify domain where the function actually runs. If your Netlify
+    // URL is different, change it to match (Netlify → Project overview shows it).
     // Leave "" to fall back to per-product Stripe Payment Links.
-    CHECKOUT_ENDPOINT: "/.netlify/functions/create-checkout-session",
+    CHECKOUT_ENDPOINT: "https://asadiqbalstore.netlify.app/.netlify/functions/create-checkout-session",
 
     // Your Stripe *publishable* key (starts with pk_). Safe in the browser.
     // Only needed if the endpoint returns a session id instead of a url.

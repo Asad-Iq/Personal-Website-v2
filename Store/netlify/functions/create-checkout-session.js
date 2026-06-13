@@ -14,6 +14,10 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event) {
+  // CORS preflight — the store is served from a different origin (GitHub Pages)
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: cors(), body: "" };
+  }
   if (event.httpMethod !== "POST") {
     return json(405, { error: "Method not allowed" });
   }
@@ -97,10 +101,18 @@ exports.handler = async function (event) {
   }
 };
 
+function cors() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
+  };
+}
+
 function json(statusCode, obj) {
   return {
     statusCode,
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    headers: Object.assign({ "Content-Type": "application/json" }, cors()),
     body: JSON.stringify(obj)
   };
 }
