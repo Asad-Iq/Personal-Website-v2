@@ -2,7 +2,7 @@
  * Bump CACHE_VERSION whenever you change precached files (CSS/HTML/icons)
  * so returning visitors get the update.
  */
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME = `runtime-${CACHE_VERSION}`;
 
@@ -12,13 +12,13 @@ const APP_SHELL = [
   "./",
   "./index.html",
   "./portfolio.html",
-  "./article-physics.html",
-  "./article-thoughts-modern-relationships.html",
-  "./article-website.html",
-  "./battleships.html",
-  "./connect4.html",
-  "./hangman.html",
-  "./noughts-crosses.html",
+  "./Articles/article-physics.html",
+  "./Articles/article-thoughts-modern-relationships.html",
+  "./Articles/article-website.html",
+  "./Games/battleships.html",
+  "./Games/connect4.html",
+  "./Games/hangman.html",
+  "./Games/noughts-crosses.html",
   "./main-style.css",
   "./style.css",
   "./offline.html",
