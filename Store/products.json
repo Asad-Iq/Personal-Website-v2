@@ -9,7 +9,8 @@
       "description": "Support my work by buying me a coffee! Every cup counts!",
       "image": "/Store/images/pexels-viniciusvieirafotografia-22608567.jpg",
       "stock": 1000,
-      "paymentLink": ""
+      "paymentLink": "",
+      "digital": true
     }
   ]
 }

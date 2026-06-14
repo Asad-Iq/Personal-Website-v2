@@ -1,46 +1,46 @@
 /* ============================================================
-   create-checkout-session  (Netlify Function)
-   Creates a real Stripe Checkout Session from the cart.
+   /api/create-checkout-session   (Vercel Serverless Function)
+   Vercel format: module.exports = (req, res). Place this file at
+   api/create-checkout-session.js in the ROOT of your repo.
 
-   Prices are read from products.json on the server side, NOT from
-   the browser — so a customer can't tamper with amounts.
-
-   Required environment variables (set in Netlify dashboard):
+   Environment variables (set in the Vercel dashboard):
      STRIPE_SECRET_KEY   your Stripe secret key (sk_live_… / sk_test_…)
      SITE_URL            your site origin, e.g. https://asadiqbal.site
-   Install once:  npm install stripe
    ============================================================ */
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Stripe = require("stripe");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-exports.handler = async function (event) {
-  // CORS preflight — the store is served from a different origin (GitHub Pages)
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: cors(), body: "" };
-  }
-  if (event.httpMethod !== "POST") {
-    return json(405, { error: "Method not allowed" });
-  }
+module.exports = async function handler(req, res) {
+  // CORS — the store is served from a different origin (GitHub Pages)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const SITE_URL = (process.env.SITE_URL || "").replace(/\/$/, "");
   if (!process.env.STRIPE_SECRET_KEY || !SITE_URL) {
-    return json(500, { error: "Server not configured (STRIPE_SECRET_KEY / SITE_URL)." });
+    return res.status(500).json({ error: "Server not configured (STRIPE_SECRET_KEY / SITE_URL)." });
   }
 
-  let body;
-  try { body = JSON.parse(event.body || "{}"); }
-  catch (e) { return json(400, { error: "Invalid request body" }); }
+  // Vercel usually parses JSON bodies automatically; handle the string case too.
+  let body = req.body;
+  if (typeof body === "string") {
+    try { body = JSON.parse(body || "{}"); } catch (e) { return res.status(400).json({ error: "Invalid request body" }); }
+  }
+  body = body || {};
 
   const requested = Array.isArray(body.items) ? body.items : [];
-  if (!requested.length) return json(400, { error: "Cart is empty" });
+  if (!requested.length) return res.status(400).json({ error: "Cart is empty" });
 
   // Load the authoritative catalog from the live site
   let catalog;
   try {
-    const res = await fetch(SITE_URL + "/Store/products.json", { cache: "no-store" });
-    catalog = await res.json();
+    const r = await fetch(SITE_URL + "/Store/products.json", { cache: "no-store" });
+    catalog = await r.json();
   } catch (e) {
-    return json(500, { error: "Could not load product catalog" });
+    return res.status(500).json({ error: "Could not load product catalog" });
   }
 
   const currency = (catalog.currency || "gbp").toLowerCase();
@@ -69,21 +69,18 @@ exports.handler = async function (event) {
     });
   }
 
-  if (!line_items.length) return json(400, { error: "No purchasable items in cart" });
+  if (!line_items.length) return res.status(400).json({ error: "No purchasable items in cart" });
 
-  // Base session — applies to every order
   const sessionConfig = {
     mode: "payment",
     line_items,
-    // Order confirmation email + receipt are sent by Stripe automatically.
     phone_number_collection: { enabled: true },
     automatic_tax: { enabled: false }, // turn on once Stripe Tax is set up
     success_url: SITE_URL + "/Store/success.html?session_id={CHECKOUT_SESSION_ID}",
     cancel_url: SITE_URL + "/Store/cancel.html"
   };
 
-  // Only ask for an address and charge shipping if something physical is in the cart.
-  // Digital-only orders skip both.
+  // Only collect an address and charge shipping if something physical is in the cart.
   if (hasPhysical) {
     sessionConfig.shipping_address_collection = {
       allowed_countries: ["GB", "US", "CA", "IE", "FR", "DE", "AU"]
@@ -105,24 +102,8 @@ exports.handler = async function (event) {
 
   try {
     const session = await stripe.checkout.sessions.create(sessionConfig);
-    return json(200, { url: session.url, id: session.id });
+    return res.status(200).json({ url: session.url, id: session.id });
   } catch (err) {
-    return json(500, { error: err.message || "Stripe error" });
+    return res.status(500).json({ error: err.message || "Stripe error" });
   }
 };
-
-function cors() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  };
-}
-
-function json(statusCode, obj) {
-  return {
-    statusCode,
-    headers: Object.assign({ "Content-Type": "application/json" }, cors()),
-    body: JSON.stringify(obj)
-  };
-}
