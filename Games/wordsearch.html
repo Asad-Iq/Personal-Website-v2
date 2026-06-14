@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Search — ARCADE</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* ---- Word Search specific styles ---- */
+    .ws-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 1rem 2rem;
+      gap: 1rem;
+    }
+
+    .ws-layout {
+      display: flex;
+      gap: 2.5rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 920px;
+    }
+
+    /* The lettered grid */
+    .ws-grid-wrap { flex-shrink: 0; }
+    .ws-grid {
+      display: grid;
+      gap: 0;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      padding: 6px;
+      touch-action: none;            /* let us own the drag on touch devices */
+      user-select: none;
+      -webkit-user-select: none;
+      width: min(86vw, 560px);
+      position: relative;            /* anchor for the capsule overlay */
+    }
+    .ws-cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: clamp(0.7rem, 2.6vw, 1.05rem);
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      position: relative;
+      z-index: 0;                    /* cell backgrounds sit beneath the capsules */
+    }
+    .ws-ch { position: relative; z-index: 2; }   /* letters stay crisp on top */
+
+    /* Capsule overlay — the rounded "highlighter" marks */
+    .ws-overlay {
+      position: absolute;
+      inset: 6px;                    /* matches the grid padding */
+      z-index: 1;                    /* above cell backgrounds, below letters */
+      pointer-events: none;
+      overflow: visible;
+    }
+    .ws-overlay line { fill: none; stroke-linecap: round; }
+    .ws-cap { stroke-width: 0.74; opacity: 0.5; }                 /* found words */
+    .ws-cap.pop { animation: ws-pop 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes ws-pop { from { stroke-width: 0.2; opacity: 0; } to { stroke-width: 0.74; opacity: 0.5; } }
+    .ws-sel { stroke: var(--accent-yellow); stroke-width: 0.74; opacity: 0.7; }
+
+    /* hint flash (cell background pulse behind the letter) */
+    .ws-cell.hint { animation: ws-hint 0.5s ease 4; }
+    @keyframes ws-hint {
+      from { background: var(--accent-blue); }
+      to   { background: var(--surface); }
+    }
+
+    /* Right column: word list + dictionary */
+    .ws-side {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      flex: 1;
+      min-width: 220px;
+      max-width: 320px;
+    }
+    .ws-label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .ws-source {
+      font-size: 0.55rem;
+      padding: 0.1rem 0.4rem;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+    }
+    .ws-source.live { color: var(--accent-green); border-color: rgba(48,209,88,0.4); }
+    .ws-source.offline { color: var(--accent-yellow); border-color: rgba(255,214,10,0.4); }
+
+    .ws-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.9rem;
+    }
+    .ws-word {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      cursor: default;
+      transition: color 0.2s, opacity 0.2s;
+      position: relative;
+    }
+    .ws-word.found {
+      color: var(--text-dim);
+      text-decoration: line-through;
+      text-decoration-color: var(--accent-green);
+      opacity: 0.65;
+    }
+
+    /* Dictionary panel */
+    .ws-dict {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 0.9rem 1rem;
+      min-height: 5.5rem;
+    }
+    .ws-dict-word {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 0.06em;
+      color: var(--accent-blue);
+      text-shadow: var(--glow-blue);
+    }
+    .ws-dict-pos {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin: 0.15rem 0 0.5rem;
+    }
+    .ws-dict-def {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    .ws-dict-empty {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* Difficulty selector (reuses arcade button look, ws accent) */
+    .diff-selector { display: flex; gap: 0.5rem; justify-content: center; font-family: var(--font-mono); font-size: 0.7rem; }
+    .diff-btn {
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      transition: all 0.2s;
+    }
+    .diff-btn.active, .diff-btn:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); background: var(--surface2); }
+
+    /* controls row */
+    .ws-controls { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .ws-controls .reset-btn { margin: 0.75rem 0; }
+    .ws-controls .reset-btn.hint-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* loading shimmer on the grid */
+    .ws-grid.loading { opacity: 0.5; pointer-events: none; }
+
+    @media (max-width: 760px) {
+      .ws-layout { gap: 1.25rem; }
+      .ws-side { max-width: 560px; width: min(86vw, 560px); }
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#16181d">
+
+  <!-- Icons / favicons -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+  <!-- iOS standalone behaviour -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Asad Iqbal">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="/index.html#games" class="back-btn">← BACK</a>
+
+      <div class="game-title-bar">
+        <h1 style="color: var(--accent-yellow); text-shadow: var(--glow-yellow);">WORD SEARCH</h1>
+        <p class="subtitle">find · drag · solve</p>
+      </div>
+
+      <div class="header-right">
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☀</button>
+        <div class="diff-selector">
+          <button class="diff-btn active" id="diff-easy"   onclick="setDiff('easy')">EASY</button>
+          <button class="diff-btn"        id="diff-medium" onclick="setDiff('medium')">MEDIUM</button>
+          <button class="diff-btn"        id="diff-hard"   onclick="setDiff('hard')">HARD</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-item">
+        <span class="score-label">FOUND</span>
+        <span class="score-value" id="sc-found" style="color:var(--accent-green)">0/0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">TIME</span>
+        <span class="score-value" id="sc-time" style="color:var(--accent-yellow)">0:00</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">SOLVED</span>
+        <span class="score-value" id="sc-solved" style="color:var(--accent-blue)">0</span>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background: var(--accent-yellow);"></span>
+      <span id="status-text">Drag across letters to highlight a word</span>
+    </div>
+
+    <div class="ws-container">
+      <div class="ws-layout">
+        <div class="ws-grid-wrap">
+          <div class="ws-grid" id="ws-grid"></div>
+        </div>
+
+        <div class="ws-side">
+          <div>
+            <div class="ws-label">
+              <span>Words to find</span>
+              <span class="ws-source" id="ws-source">—</span>
+            </div>
+            <div class="ws-words" id="ws-words"></div>
+          </div>
+
+          <div>
+            <div class="ws-label">Dictionary</div>
+            <div class="ws-dict" id="ws-dict">
+              <div class="ws-dict-empty">Find a word to look up its meaning.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-controls">
+        <button class="reset-btn hint-btn" onclick="useHint()">[ HINT ]</button>
+        <button class="reset-btn" onclick="newGame()">[ NEW PUZZLE ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // WORD SEARCH — Game Logic
+    // Words are pulled from a live dictionary word service so a fresh
+    // grid can be generated on demand. A local word bank is bundled as
+    // a fallback so the puzzle still works offline (the site is a PWA).
+    // ============================================================
+
+    // ---- Difficulty config -------------------------------------
+    const DIFFS = {
+      easy:   { size: 9,  count: 6,  min: 3, max: 6,  reverse: false, diagonal: false },
+      medium: { size: 12, count: 8,  min: 4, max: 8,  reverse: true,  diagonal: true  },
+      hard:   { size: 14, count: 10, min: 5, max: 11, reverse: true,  diagonal: true  }
+    };
+    let difficulty = 'easy';
+
+    // ---- Offline fallback word bank (real English words) -------
+    // Used only when the live word service can't be reached.
+    const FALLBACK_WORDS = [
+      // short
+      "CAT","DOG","SUN","SKY","SEA","MAP","KEY","OWL","FOX","BEE","ICE","JAM","INK","OAK","FIG",
+      "STAR","MOON","FISH","TREE","BOOK","WAVE","LEAF","WOLF","BIRD","RAIN","SNOW","SHIP","GOLD",
+      "LIME","MINT","ROSE","DUNE","REEF","KITE","DRUM","HARP","CLAY","PEAR","WREN","LARK",
+      // medium
+      "PLANET","ROCKET","JUNGLE","CASTLE","GUITAR","FALCON","COPPER","SILVER","CANYON","GLACIER",
+      "ORCHID","MEADOW","BREEZE","HARBOR","LANTERN","COMPASS","VOYAGE","SUMMIT","THUNDER","CRYSTAL",
+      "MARBLE","PEPPER","WALNUT","CYPRESS","JASMINE","SAFFRON","PELICAN","OTTER","BADGER","HERON",
+      // longer
+      "MOUNTAIN","ELEPHANT","SUNFLOWER","WATERFALL","LIGHTHOUSE","ADVENTURE","ASTRONOMY",
+      "BUTTERFLY","CHESTNUT","DIAMONDS","EVERGREEN","HARMONICA","MAGNOLIA","NIGHTFALL",
+      "ORCHESTRA","PARADISE","QUARTZITE","RASPBERRY","TANGERINE","UMBRELLA","WHIRLWIND"
+    ];
+
+    // ---- State -------------------------------------------------
+    let grid = [];            // 2D array of letters
+    let cellEls = [];         // 2D array of cell elements
+    let placedWords = [];     // [{ word, cells:[[r,c]...] , found:bool, color }]
+    let solvedCount = 0;
+    let timer = null, seconds = 0, started = false, puzzleDone = false;
+    const defCache = {};
+
+    // Capsule overlay
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    let overlayEl = null, capLayer = null, selLine = null;
+    const CAPSULE_COLORS = [
+      '#0a84ff', '#30d158', '#ff375f', '#ffd60a', '#ff9f0a',
+      '#bf5af2', '#5ac8fa', '#ff7ab6', '#5e5ce6', '#34c8a0'
+    ];
+
+    // Directions: [dr, dc]
+    const DIRS_ORTHO = [[0,1],[1,0]];
+    const DIRS_DIAG  = [[1,1],[1,-1]];
+
+    // ============================================================
+    // Word sourcing
+    // ============================================================
+    async function fetchWords(cfg) {
+      // Ask a couple of public word services for a big batch, then we
+      // filter locally to the lengths this difficulty needs.
+      const endpoints = [
+        "https://random-word-api.vercel.app/api?words=140",
+        "https://random-word-api.herokuapp.com/word?number=140"
+      ];
+      for (const url of endpoints) {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 4500);
+          const res = await fetch(url, { signal: ctrl.signal });
+          clearTimeout(t);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (Array.isArray(data) && data.length) {
+            const cleaned = data
+              .map(w => String(w).toUpperCase())
+              .filter(w => /^[A-Z]+$/.test(w));
+            const picked = selectWords(cleaned, cfg);
+            if (picked.length >= cfg.count) {
+              setSource('LIVE');
+              return picked;
+            }
+          }
+        } catch (e) { /* try next endpoint */ }
+      }
+      // Fallback: bundled bank
+      setSource('OFFLINE');
+      return selectWords(FALLBACK_WORDS.slice(), cfg);
+    }
+
+    function selectWords(pool, cfg) {
+      const fit = [...new Set(pool)].filter(w => w.length >= cfg.min && w.length <= cfg.max);
+      // shuffle
+      for (let i = fit.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [fit[i], fit[j]] = [fit[j], fit[i]];
+      }
+      return fit.slice(0, Math.max(cfg.count + 6, cfg.count)); // a few extra as placement spares
+    }
+
+    function setSource(kind) {
+      const el = document.getElementById('ws-source');
+      el.className = 'ws-source ' + (kind === 'LIVE' ? 'live' : 'offline');
+      el.textContent = kind === 'LIVE' ? 'DICTIONARY' : 'OFFLINE BANK';
+    }
+
+    // ============================================================
+    // Grid generation + word placement (backtracking-ish)
+    // ============================================================
+    function buildPuzzle(words, cfg) {
+      const N = cfg.size;
+      const g = Array.from({ length: N }, () => Array(N).fill(null));
+      const dirs = DIRS_ORTHO.concat(cfg.diagonal ? DIRS_DIAG : []);
+      const placed = [];
+
+      for (const word of words) {
+        if (placed.length >= cfg.count) break;
+        if (word.length > N) continue;
+        const cells = tryPlace(g, word, N, dirs, cfg.reverse);
+        if (cells) placed.push({ word, cells, found: false });
+      }
+
+      // Fill blanks with random letters
+      const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let r = 0; r < N; r++)
+        for (let c = 0; c < N; c++)
+          if (g[r][c] === null) g[r][c] = A[Math.floor(Math.random() * 26)];
+
+      return { g, placed };
+    }
+
+    function tryPlace(g, word, N, dirs, allowReverse) {
+      const letters = (allowReverse && Math.random() < 0.5)
+        ? word.split('').reverse()
+        : word.split('');
+      for (let attempt = 0; attempt < 120; attempt++) {
+        const [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+        const len = letters.length;
+        const rMax = dr === 0 ? N : (dr > 0 ? N - len : N);
+        const rMin = dr < 0 ? len - 1 : 0;
+        const cMax = dc === 0 ? N : (dc > 0 ? N - len : N);
+        const cMin = dc < 0 ? len - 1 : 0;
+
+        const r0 = rMin + Math.floor(Math.random() * Math.max(1, rMax - rMin));
+        const c0 = cMin + Math.floor(Math.random() * Math.max(1, cMax - cMin));
+
+        // bounds check end cell
+        const rEnd = r0 + dr * (len - 1);
+        const cEnd = c0 + dc * (len - 1);
+        if (rEnd < 0 || rEnd >= N || cEnd < 0 || cEnd >= N) continue;
+
+        let ok = true;
+        const cells = [];
+        for (let i = 0; i < len; i++) {
+          const rr = r0 + dr * i, cc = c0 + dc * i;
+          const existing = g[rr][cc];
+          if (existing !== null && existing !== letters[i]) { ok = false; break; }
+          cells.push([rr, cc]);
+        }
+        if (!ok) continue;
+        // commit
+        for (let i = 0; i < len; i++) g[cells[i][0]][cells[i][1]] = letters[i];
+        // store cells in canonical word order (not reversed) for highlight
+        return cells;
+      }
+      return null;
+    }
+
+    // ============================================================
+    // Rendering
+    // ============================================================
+    function render(puzzle) {
+      grid = puzzle.g;
+      placedWords = puzzle.placed;
+      const N = grid.length;
+      const gridEl = document.getElementById('ws-grid');
+      gridEl.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+      gridEl.innerHTML = '';
+      cellEls = Array.from({ length: N }, () => Array(N));
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'ws-cell';
+          const ch = document.createElement('span');
+          ch.className = 'ws-ch';
+          ch.textContent = grid[r][c];
+          cell.appendChild(ch);
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          gridEl.appendChild(cell);
+          cellEls[r][c] = cell;
+        }
+      }
+
+      // Capsule overlay: 1 grid unit == 1 cell, so geometry is trivial
+      overlayEl = document.createElementNS(SVG_NS, 'svg');
+      overlayEl.setAttribute('class', 'ws-overlay');
+      overlayEl.setAttribute('viewBox', `0 0 ${N} ${N}`);
+      overlayEl.setAttribute('preserveAspectRatio', 'none');
+      capLayer = document.createElementNS(SVG_NS, 'g');
+      overlayEl.appendChild(capLayer);
+      selLine = document.createElementNS(SVG_NS, 'line');
+      selLine.setAttribute('class', 'ws-sel');
+      selLine.style.display = 'none';
+      overlayEl.appendChild(selLine);
+      gridEl.appendChild(overlayEl);
+
+      // assign a stable colour per word
+      placedWords.forEach((pw, i) => { pw.color = CAPSULE_COLORS[i % CAPSULE_COLORS.length]; });
+
+      // Word list (sorted longest first reads nicely)
+      const wordsEl = document.getElementById('ws-words');
+      wordsEl.innerHTML = '';
+      placedWords
+        .slice()
+        .sort((a, b) => b.word.length - a.word.length)
+        .forEach(pw => {
+          const span = document.createElement('span');
+          span.className = 'ws-word';
+          span.id = 'word-' + pw.word;
+          span.textContent = pw.word;
+          span.style.textDecorationColor = pw.color;
+          wordsEl.appendChild(span);
+        });
+
+      updateFound();
+    }
+
+    // Position an SVG <line> across the centres of two cells
+    function setLine(el, r0, c0, r1, c1) {
+      el.setAttribute('x1', c0 + 0.5);
+      el.setAttribute('y1', r0 + 0.5);
+      el.setAttribute('x2', c1 + 0.5);
+      el.setAttribute('y2', r1 + 0.5);
+    }
+
+    function updateFound() {
+      const total = placedWords.length;
+      const found = placedWords.filter(p => p.found).length;
+      document.getElementById('sc-found').textContent = found + '/' + total;
+    }
+
+    // ============================================================
+    // Drag selection
+    // ============================================================
+    let dragging = false, startCell = null, selCells = [];
+
+    function cellFromPoint(x, y) {
+      let el = document.elementFromPoint(x, y);
+      if (el && el.classList.contains('ws-ch')) el = el.parentElement;  // letter -> cell
+      if (el && el.classList.contains('ws-cell')) return el;
+      return null;
+    }
+
+    function clearSel() {
+      selCells = [];
+      if (selLine) selLine.style.display = 'none';
+    }
+
+    function lineCells(r0, c0, r1, c1) {
+      const dr = Math.sign(r1 - r0), dc = Math.sign(c1 - c0);
+      const adr = Math.abs(r1 - r0), adc = Math.abs(c1 - c0);
+      // valid only if horizontal, vertical, or perfect diagonal
+      if (!(adr === 0 || adc === 0 || adr === adc)) return null;
+      const len = Math.max(adr, adc) + 1;
+      const cells = [];
+      for (let i = 0; i < len; i++) cells.push([r0 + dr * i, c0 + dc * i]);
+      return cells;
+    }
+
+    function paintSel(cells) {
+      selCells = cells;
+      if (!selLine) return;
+      const a = cells[0], b = cells[cells.length - 1];
+      setLine(selLine, a[0], a[1], b[0], b[1]);
+      selLine.style.display = '';
+    }
+
+    function drawCapsule(pw) {
+      const a = pw.cells[0], b = pw.cells[pw.cells.length - 1];
+      const cap = document.createElementNS(SVG_NS, 'line');
+      cap.setAttribute('class', 'ws-cap pop');
+      cap.setAttribute('stroke', pw.color);
+      setLine(cap, a[0], a[1], b[0], b[1]);
+      capLayer.appendChild(cap);
+    }
+
+    function onDown(e) {
+      if (puzzleDone) return;
+      const t = e.touches ? e.touches[0] : e;
+      const cell = cellFromPoint(t.clientX, t.clientY);
+      if (!cell) return;
+      e.preventDefault();
+      dragging = true;
+      startCell = [parseInt(cell.dataset.r), parseInt(cell.dataset.c)];
+      paintSel([startCell]);
+      if (!started) startTimer();
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      const t = e.touches ? e.touches[0] : e;
+      const cell = cellFromPoint(t.clientX, t.clientY);
+      if (!cell) return;
+      e.preventDefault();
+      const r1 = parseInt(cell.dataset.r), c1 = parseInt(cell.dataset.c);
+      const cells = lineCells(startCell[0], startCell[1], r1, c1);
+      if (cells) paintSel(cells);
+    }
+
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      checkSelection();
+      clearSel();
+    }
+
+    function checkSelection() {
+      if (selCells.length < 2) return;
+      const str = selCells.map(([r, c]) => grid[r][c]).join('');
+      const rev = str.split('').reverse().join('');
+      const match = placedWords.find(p => !p.found && (p.word === str || p.word === rev));
+      if (!match) return;
+      match.found = true;
+      drawCapsule(match);
+      const wEl = document.getElementById('word-' + match.word);
+      if (wEl) wEl.classList.add('found');
+      updateFound();
+      lookUp(match.word);
+      setStatus(`Found ${match.word}!`, 'var(--accent-green)');
+
+      if (placedWords.every(p => p.found)) winPuzzle();
+    }
+
+    // ============================================================
+    // Dictionary lookup (real dictionary API)
+    // ============================================================
+    async function lookUp(word) {
+      const dict = document.getElementById('ws-dict');
+      const w = word.toLowerCase();
+      if (defCache[w]) { renderDef(word, defCache[w]); return; }
+      dict.innerHTML = `<div class="ws-dict-word">${word}</div><div class="ws-dict-empty">Looking up…</div>`;
+      try {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(w), { signal: ctrl.signal });
+        clearTimeout(to);
+        if (!res.ok) throw new Error('no entry');
+        const data = await res.json();
+        const meaning = data[0]?.meanings?.[0];
+        const def = meaning?.definitions?.[0]?.definition;
+        const pos = meaning?.partOfSpeech || '';
+        if (def) {
+          defCache[w] = { def, pos };
+          renderDef(word, defCache[w]);
+          return;
+        }
+        throw new Error('no def');
+      } catch (e) {
+        dict.innerHTML = `<div class="ws-dict-word">${word}</div><div class="ws-dict-empty">No definition available right now.</div>`;
+      }
+    }
+
+    function renderDef(word, entry) {
+      document.getElementById('ws-dict').innerHTML =
+        `<div class="ws-dict-word">${word}</div>` +
+        (entry.pos ? `<div class="ws-dict-pos">${entry.pos}</div>` : '') +
+        `<div class="ws-dict-def">${entry.def}</div>`;
+    }
+
+    // ============================================================
+    // Hint
+    // ============================================================
+    function useHint() {
+      if (puzzleDone) return;
+      const unfound = placedWords.filter(p => !p.found);
+      if (!unfound.length) return;
+      if (!started) startTimer();
+      const pick = unfound[Math.floor(Math.random() * unfound.length)];
+      const [r, c] = pick.cells[0];
+      const cell = cellEls[r][c];
+      cell.classList.remove('hint');
+      void cell.offsetWidth;          // restart animation
+      cell.classList.add('hint');
+      setStatus(`Hint: "${pick.word}" starts here`, 'var(--accent-blue)');
+      setTimeout(() => cell.classList.remove('hint'), 2200);
+    }
+
+    // ============================================================
+    // Timer + status + win
+    // ============================================================
+    function startTimer() {
+      started = true;
+      timer = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds / 60), s = seconds % 60;
+        document.getElementById('sc-time').textContent = m + ':' + String(s).padStart(2, '0');
+      }, 1000);
+    }
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+    function setStatus(msg, color) {
+      const dot = document.getElementById('status-dot');
+      document.getElementById('status-text').textContent = msg;
+      dot.style.background = color;
+    }
+
+    function winPuzzle() {
+      puzzleDone = true;
+      stopTimer();
+      solvedCount++;
+      document.getElementById('sc-solved').textContent = solvedCount;
+      const m = Math.floor(seconds / 60), s = seconds % 60;
+      setStatus(`SOLVED in ${m}:${String(s).padStart(2,'0')}! 🎉`, 'var(--accent-green)');
+      const dot = document.getElementById('status-dot');
+      dot.style.animation = 'none';
+    }
+
+    // ============================================================
+    // New game / difficulty
+    // ============================================================
+    async function newGame() {
+      const cfg = DIFFS[difficulty];
+      stopTimer();
+      seconds = 0; started = false; puzzleDone = false;
+      document.getElementById('sc-time').textContent = '0:00';
+      document.getElementById('ws-dict').innerHTML = '<div class="ws-dict-empty">Find a word to look up its meaning.</div>';
+      const dot = document.getElementById('status-dot');
+      dot.style.animation = 'blink 1s infinite';
+      setStatus('Loading a fresh puzzle…', 'var(--accent-yellow)');
+      document.getElementById('ws-grid').classList.add('loading');
+
+      const words = await fetchWords(cfg);
+
+      // Build, retry a couple of times if too few words could be placed
+      let puzzle = buildPuzzle(words, cfg);
+      let guard = 0;
+      while (puzzle.placed.length < Math.min(cfg.count, words.length) && guard < 3) {
+        puzzle = buildPuzzle(words, cfg);
+        guard++;
+      }
+
+      document.getElementById('ws-grid').classList.remove('loading');
+      render(puzzle);
+      setStatus('Drag across letters to highlight a word', 'var(--accent-yellow)');
+    }
+
+    function setDiff(d) {
+      difficulty = d;
+      ['easy', 'medium', 'hard'].forEach(x =>
+        document.getElementById('diff-' + x).classList.toggle('active', x === d));
+      newGame();
+    }
+
+    // ============================================================
+    // Pointer wiring (mouse + touch)
+    // ============================================================
+    const gridEl = document.getElementById('ws-grid');
+    gridEl.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    gridEl.addEventListener('touchstart', onDown, { passive: false });
+    gridEl.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+
+    // Boot
+    newGame();
+
+    // ── Theme: read from localStorage (set by main site), cycle on click
+    (function(){
+      var root = document.documentElement;
+      var btn  = document.getElementById("theme-toggle");
+      var THEMES = ["dark","light","auto"];
+      var ICONS  = {dark:"☾", light:"☀", auto:"◑"};
+
+      function applyTheme(t){
+        var eff = t==="auto"
+          ? (window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark")
+          : t;
+        root.setAttribute("data-theme", eff);
+        localStorage.setItem("theme", t);
+        btn.textContent = ICONS[t];
+        btn.title = t + " mode";
+      }
+
+      btn.addEventListener("click", function(){
+        var cur = localStorage.getItem("theme")||"dark";
+        var next = THEMES[(THEMES.indexOf(cur)+1)%THEMES.length];
+        applyTheme(next);
+      });
+
+      var cur = localStorage.getItem("theme")||"auto";
+      btn.textContent = ICONS[cur]||"☀";
+      btn.title = cur + " mode";
+
+      window.matchMedia("(prefers-color-scheme:light)").addEventListener("change",function(){
+        if(localStorage.getItem("theme")==="auto") applyTheme("auto");
+      });
+    })();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").then(function (reg) {
+          reg.addEventListener("updatefound", function () {
+            var sw = reg.installing;
+            sw && sw.addEventListener("statechange", function () {
+              if (sw.state === "installed" && navigator.serviceWorker.controller) {
+                sw.postMessage("SKIP_WAITING");
+              }
+            });
+          });
+        }).catch(function (err) {
+          console.warn("Service worker registration failed:", err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

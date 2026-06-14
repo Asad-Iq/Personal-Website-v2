@@ -2043,3 +2043,45 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   .hero-store-btn,
   .hero-actions a[href*="Store" i] { display: none !important; }
 }
+/* ═══════════ Row 2 game previews + glows ═══════════ */
+
+/* 05 · Word Search (yellow) */
+.gc-ws-grid { display:grid; grid-template-columns:repeat(4,26px); gap:4px;
+  font-family:var(--font-mono); font-weight:700; font-size:0.95rem; color:var(--text-dim); }
+.gc-ws-grid span { display:flex; align-items:center; justify-content:center; }
+.gc-ws-grid .hl { color:#0a0a0f; background:#ffd60a; border-radius:3px; box-shadow:0 0 8px rgba(255,214,10,0.5); }
+#gc-wordsearch::before { background: radial-gradient(circle at 50% 0%, rgba(255,214,10,0.16), transparent 70%); }
+#gc-wordsearch:hover { border-color:#ffd60a; box-shadow:0 0 20px rgba(255,214,10,0.4); }
+#gc-wordsearch .game-play-btn { color:#e0a800; }
+
+/* 06 · Sudoku (blue) */
+.gc-sk-grid { display:grid; grid-template-columns:repeat(3,32px); border:1.5px solid var(--text-dim); }
+.gc-sk-grid span { width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-disp); font-size:1.2rem; border:1px solid var(--border); color:#0a84ff; }
+.gc-sk-grid span.dim { color:var(--text-dim); }
+#gc-sudoku::before { background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.15), transparent 70%); }
+#gc-sudoku:hover { border-color:#0a84ff; box-shadow:0 0 20px rgba(10,132,255,0.4); }
+#gc-sudoku .game-play-btn { color:#0a84ff; }
+
+/* 07 · Chess (red) */
+.gc-ch-grid { display:grid; grid-template-columns:repeat(4,30px); grid-template-rows:repeat(4,30px);
+  border:1.5px solid var(--text-dim); }
+.gc-ch-grid div { display:flex; align-items:center; justify-content:center; font-size:1.15rem; line-height:1; }
+.gc-ch-grid .lt { background:#31344c; }
+.gc-ch-grid .dk { background:#1b1d2b; }
+.gc-ch-grid .wp { color:#f1ecd9; }
+.gc-ch-grid .bp { color:#ff2d55; }
+#gc-chess::before { background: radial-gradient(circle at 50% 0%, rgba(255,45,85,0.15), transparent 70%); }
+#gc-chess:hover { border-color:#ff2d55; box-shadow:0 0 20px rgba(255,45,85,0.35); }
+#gc-chess .game-play-btn { color:#ff2d55; }
+
+/* 08 · Reference Frame (blue) */
+.gc-rf-mini { position:relative; width:130px; height:84px; background:#07080d;
+  border:1px solid var(--border); overflow:hidden; }
+.gc-rf-mini .plat { position:absolute; bottom:0; height:18px; background:#11141f; border-top:2px solid #0a84ff; }
+.gc-rf-mini .laser { position:absolute; top:10px; width:3px; height:50px; background:#ff2d55; box-shadow:0 0 8px rgba(255,45,85,0.7); }
+.gc-rf-mini .particle { position:absolute; width:14px; height:14px; border-radius:50%; background:#7ec8ff; box-shadow:0 0 10px #7ec8ff; }
+.gc-rf-mini .streak { position:absolute; height:2px; background:rgba(120,200,255,0.5); }
+#gc-refframe::before { background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.15), transparent 70%); }
+#gc-refframe:hover { border-color:#0a84ff; box-shadow:0 0 20px rgba(10,132,255,0.4); }
+#gc-refframe .game-play-btn { color:#0a84ff; }

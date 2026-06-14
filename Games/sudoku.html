@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku — ARCADE</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* ---- Sudoku specific styles ---- */
+    .sk-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 1rem 2rem;
+      gap: 1.25rem;
+    }
+
+    .sk-board {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      width: min(92vw, 500px);
+      aspect-ratio: 1 / 1;
+      background: var(--surface);
+      border: 2.5px solid var(--text-dim);
+      transition: border-color 0.3s;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .sk-board.solved { border-color: var(--accent-green); box-shadow: 0 0 24px rgba(48,209,88,0.35); }
+
+    .sk-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 5.5vw, 1.9rem);
+      line-height: 1;
+      transition: background 0.12s;
+    }
+    .sk-cell:nth-child(9n)    { border-right: 0; }
+    .sk-cell:nth-child(n+73)  { border-bottom: 0; }
+    /* 3x3 box separators */
+    .sk-cell.bbr { border-right:  2.5px solid var(--text-dim); }
+    .sk-cell.bbb { border-bottom: 2.5px solid var(--text-dim); }
+
+    /* highlight states (one background wins, set in render) */
+    .sk-cell.peer { background: rgba(110,110,138,0.13); }
+    .sk-cell.same { background: rgba(255,214,10,0.16); }
+    .sk-cell.sel  { background: rgba(10,132,255,0.30); }
+
+    /* value colours */
+    .sk-val { color: var(--accent-blue); transition: color 0.1s; }
+    .sk-cell.given .sk-val { color: var(--text); }
+    .sk-cell.err   .sk-val { color: var(--accent-red); text-shadow: 0 0 12px rgba(255,45,85,0.4); }
+    .sk-val.pop { animation: sk-pop 0.18s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes sk-pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* pencil notes */
+    .sk-notes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      width: 100%;
+      height: 100%;
+      padding: 2px;
+      font-family: var(--font-mono);
+      font-size: clamp(0.42rem, 1.8vw, 0.62rem);
+      color: var(--text-dim);
+    }
+    .sk-notes span { display: flex; align-items: center; justify-content: center; }
+
+    /* number pad */
+    .sk-pad {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 0.4rem;
+      width: min(92vw, 500px);
+    }
+    .sk-num {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--accent-blue);
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 4.5vw, 1.5rem);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sk-num:hover { border-color: var(--accent-blue); background: var(--surface2); }
+    .sk-num.done { opacity: 0.28; pointer-events: none; }
+    .sk-num-rem {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      color: var(--text-dim);
+    }
+
+    /* controls */
+    .sk-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+    .sk-ctrl {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .sk-ctrl:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .sk-ctrl.active { border-color: var(--accent-yellow); color: var(--accent-yellow); background: var(--surface2); }
+    .sk-ctrl .badge {
+      font-family: var(--font-display);
+      margin-left: 0.4rem;
+      color: var(--accent-yellow);
+    }
+
+    /* difficulty selector */
+    .diff-selector { display: flex; gap: 0.5rem; justify-content: center; font-family: var(--font-mono); font-size: 0.7rem; }
+    .diff-btn {
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      transition: all 0.2s;
+    }
+    .diff-btn.active, .diff-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); background: var(--surface2); }
+
+    .sk-board.loading { opacity: 0.45; pointer-events: none; }
+
+    @media (max-width: 420px) {
+      .sk-pad { gap: 0.25rem; }
+      .sk-controls { gap: 0.4rem; }
+      .sk-ctrl { padding: 0.45rem 0.7rem; font-size: 0.62rem; }
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#16181d">
+
+  <!-- Icons / favicons -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+  <!-- iOS standalone behaviour -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Asad Iqbal">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="/index.html#games" class="back-btn">← BACK</a>
+
+      <div class="game-title-bar">
+        <h1 style="color: var(--accent-blue); text-shadow: var(--glow-blue);">SUDOKU</h1>
+        <p class="subtitle">fill · deduce · solve</p>
+      </div>
+
+      <div class="header-right">
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☀</button>
+        <div class="diff-selector">
+          <button class="diff-btn active" id="diff-easy"   onclick="setDiff('easy')">EASY</button>
+          <button class="diff-btn"        id="diff-medium" onclick="setDiff('medium')">MEDIUM</button>
+          <button class="diff-btn"        id="diff-hard"   onclick="setDiff('hard')">HARD</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-item">
+        <span class="score-label">TIME</span>
+        <span class="score-value" id="sc-time" style="color:var(--accent-blue)">0:00</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">MISTAKES</span>
+        <span class="score-value" id="sc-mistakes" style="color:var(--accent-red)">0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">SOLVED</span>
+        <span class="score-value" id="sc-solved" style="color:var(--accent-green)">0</span>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background: var(--accent-blue);"></span>
+      <span id="status-text">Pick a cell, then tap a number</span>
+    </div>
+
+    <div class="sk-container">
+      <div class="sk-board" id="sk-board"></div>
+
+      <div class="sk-pad" id="sk-pad"></div>
+
+      <div class="sk-controls">
+        <button class="sk-ctrl" id="btn-notes" onclick="toggleNotes()">NOTES <span class="badge" id="notes-state">OFF</span></button>
+        <button class="sk-ctrl" onclick="erase()">ERASE</button>
+        <button class="sk-ctrl" onclick="useHint()">HINT</button>
+        <button class="sk-ctrl" onclick="newGame()">NEW PUZZLE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // SUDOKU — Game Logic
+    // Puzzles are generated in-browser: a randomised complete grid,
+    // then cells are removed one by one while a solver confirms the
+    // puzzle still has exactly one solution. No external data needed.
+    // ============================================================
+
+    const DIFFS = { easy: 40, medium: 32, hard: 27 };  // target number of givens
+    let difficulty = 'easy';
+
+    // ---- Board state -------------------------------------------
+    let solution = [];        // 81 ints 1-9 (the answer)
+    let cells = [];           // 81 ints 0-9 (0 = empty) — current board
+    let given = [];           // 81 bools — locked clue cells
+    let notes = [];           // 81 Sets of pencil marks
+    let sel = -1;             // selected index, -1 = none
+
+    let mistakes = 0, solvedCount = 0;
+    let seconds = 0, timer = null, started = false, puzzleDone = false;
+    let notesMode = false;
+
+    // Precomputed peer lists (cells sharing a row, column, or box)
+    const PEERS = buildPeers();
+    function buildPeers() {
+      const p = [];
+      for (let i = 0; i < 81; i++) {
+        const r = Math.floor(i / 9), c = i % 9;
+        const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+        const set = new Set();
+        for (let k = 0; k < 9; k++) {
+          set.add(r * 9 + k);          // row
+          set.add(k * 9 + c);          // col
+        }
+        for (let dr = 0; dr < 3; dr++)
+          for (let dc = 0; dc < 3; dc++)
+            set.add((br + dr) * 9 + (bc + dc));   // box
+        set.delete(i);
+        p.push([...set]);
+      }
+      return p;
+    }
+
+    // ============================================================
+    // Generation
+    // ============================================================
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function canPlace(board, i, n) {
+      for (const p of PEERS[i]) if (board[p] === n) return false;
+      return true;
+    }
+
+    function generateFull() {
+      const b = new Array(81).fill(0);
+      (function fill(pos) {
+        if (pos === 81) return true;
+        const nums = shuffle([1,2,3,4,5,6,7,8,9]);
+        for (const n of nums) {
+          if (canPlace(b, pos, n)) {
+            b[pos] = n;
+            if (fill(pos + 1)) return true;
+            b[pos] = 0;
+          }
+        }
+        return false;
+      })(0);
+      return b;
+    }
+
+    // Count solutions up to `limit` using MRV (most-constrained cell first)
+    function countSolutions(board, limit) {
+      const b = board.slice();
+      let count = 0;
+      (function rec() {
+        if (count >= limit) return;
+        let best = -1, bestCands = null;
+        for (let i = 0; i < 81; i++) {
+          if (b[i] !== 0) continue;
+          const cands = [];
+          for (let n = 1; n <= 9; n++) if (canPlace(b, i, n)) cands.push(n);
+          if (cands.length === 0) return;                 // dead end
+          if (bestCands === null || cands.length < bestCands.length) {
+            best = i; bestCands = cands;
+            if (cands.length === 1) break;
+          }
+        }
+        if (best === -1) { count++; return; }              // full board
+        for (const n of bestCands) {
+          b[best] = n; rec(); b[best] = 0;
+          if (count >= limit) return;
+        }
+      })();
+      return count;
+    }
+
+    function makePuzzle(targetGivens) {
+      solution = generateFull();
+      const board = solution.slice();
+      let givensCount = 81;
+      const order = shuffle([...Array(81).keys()]);
+      for (const i of order) {
+        if (givensCount <= targetGivens) break;
+        const backup = board[i];
+        board[i] = 0;
+        if (countSolutions(board, 2) !== 1) board[i] = backup;   // keep unique
+        else givensCount--;
+      }
+      cells = board.slice();
+      given = board.map(v => v !== 0);
+      notes = Array.from({ length: 81 }, () => new Set());
+    }
+
+    // ============================================================
+    // Rendering
+    // ============================================================
+    function render(lastPlaced) {
+      const board = document.getElementById('sk-board');
+      board.innerHTML = '';
+
+      const selVal = sel >= 0 ? cells[sel] : 0;
+      const conflicts = computeConflicts();
+
+      for (let i = 0; i < 81; i++) {
+        const r = Math.floor(i / 9), c = i % 9;
+        const cell = document.createElement('div');
+        cell.className = 'sk-cell';
+        if (c === 2 || c === 5) cell.classList.add('bbr');
+        if (r === 2 || r === 5) cell.classList.add('bbb');
+        if (given[i]) cell.classList.add('given');
+
+        // background priority: selected > same-number > peer
+        if (i === sel) cell.classList.add('sel');
+        else if (selVal && cells[i] === selVal) cell.classList.add('same');
+        else if (sel >= 0 && PEERS[sel].includes(i)) cell.classList.add('peer');
+
+        if (cells[i] !== 0) {
+          const span = document.createElement('span');
+          span.className = 'sk-val';
+          if (i === lastPlaced) span.classList.add('pop');
+          if (conflicts.has(i) || (!given[i] && cells[i] !== solution[i])) cell.classList.add('err');
+          span.textContent = cells[i];
+          cell.appendChild(span);
+        } else if (notes[i].size) {
+          const nbox = document.createElement('div');
+          nbox.className = 'sk-notes';
+          for (let n = 1; n <= 9; n++) {
+            const s = document.createElement('span');
+            s.textContent = notes[i].has(n) ? n : '';
+            nbox.appendChild(s);
+          }
+          cell.appendChild(nbox);
+        }
+
+        cell.dataset.i = i;
+        cell.addEventListener('click', () => selectCell(i));
+        board.appendChild(cell);
+      }
+
+      renderPad();
+    }
+
+    function computeConflicts() {
+      const bad = new Set();
+      for (let i = 0; i < 81; i++) {
+        if (cells[i] === 0) continue;
+        for (const p of PEERS[i]) {
+          if (cells[p] === cells[i]) { bad.add(i); bad.add(p); }
+        }
+      }
+      return bad;
+    }
+
+    function renderPad() {
+      const pad = document.getElementById('sk-pad');
+      pad.innerHTML = '';
+      const counts = new Array(10).fill(0);
+      for (let i = 0; i < 81; i++) if (cells[i]) counts[cells[i]]++;
+      for (let n = 1; n <= 9; n++) {
+        const b = document.createElement('button');
+        b.className = 'sk-num';
+        const rem = 9 - counts[n];
+        if (rem <= 0) b.classList.add('done');
+        b.innerHTML = `${n}<span class="sk-num-rem">${rem > 0 ? rem : '✓'}</span>`;
+        b.addEventListener('click', () => inputDigit(n));
+        pad.appendChild(b);
+      }
+    }
+
+    // ============================================================
+    // Interaction
+    // ============================================================
+    function selectCell(i) {
+      if (puzzleDone) return;
+      sel = i;
+      render();
+    }
+
+    function inputDigit(n) {
+      if (puzzleDone || sel < 0) return;
+      if (!started) startTimer();
+
+      if (notesMode && !given[sel] && cells[sel] === 0) {
+        notes[sel].has(n) ? notes[sel].delete(n) : notes[sel].add(n);
+        render();
+        return;
+      }
+
+      if (given[sel]) return;                 // can't change clues
+
+      if (cells[sel] === n) { render(); return; }   // tapping same digit: no-op
+      cells[sel] = n;
+      notes[sel].clear();
+      // tidy peers' pencil marks
+      for (const p of PEERS[sel]) notes[p].delete(n);
+
+      if (n !== solution[sel]) {
+        mistakes++;
+        document.getElementById('sc-mistakes').textContent = mistakes;
+      }
+
+      const placed = sel;
+      render(placed);
+      checkWin();
+    }
+
+    function erase() {
+      if (puzzleDone || sel < 0 || given[sel]) return;
+      if (cells[sel] !== 0) cells[sel] = 0;
+      else notes[sel].clear();
+      render();
+    }
+
+    function toggleNotes() {
+      notesMode = !notesMode;
+      document.getElementById('btn-notes').classList.toggle('active', notesMode);
+      document.getElementById('notes-state').textContent = notesMode ? 'ON' : 'OFF';
+    }
+
+    function useHint() {
+      if (puzzleDone) return;
+      // prefer the selected empty cell, else a random empty/wrong one
+      let target = -1;
+      if (sel >= 0 && !given[sel] && cells[sel] !== solution[sel]) target = sel;
+      if (target < 0) {
+        const open = [];
+        for (let i = 0; i < 81; i++) if (!given[i] && cells[i] !== solution[i]) open.push(i);
+        if (!open.length) return;
+        target = open[Math.floor(Math.random() * open.length)];
+      }
+      if (!started) startTimer();
+      cells[target] = solution[target];
+      given[target] = true;          // lock the revealed cell
+      notes[target].clear();
+      for (const p of PEERS[target]) notes[p].delete(solution[target]);
+      sel = target;
+      setStatus('Revealed one cell', 'var(--accent-yellow)');
+      render(target);
+      checkWin();
+    }
+
+    function checkWin() {
+      for (let i = 0; i < 81; i++) if (cells[i] !== solution[i]) return;
+      puzzleDone = true;
+      stopTimer();
+      solvedCount++;
+      document.getElementById('sc-solved').textContent = solvedCount;
+      document.getElementById('sk-board').classList.add('solved');
+      const m = Math.floor(seconds / 60), s = seconds % 60;
+      const mm = mistakes === 0 ? ' flawless!' : '';
+      setStatus(`SOLVED in ${m}:${String(s).padStart(2,'0')}${mm} 🎉`, 'var(--accent-green)');
+      document.getElementById('status-dot').style.animation = 'none';
+    }
+
+    // ============================================================
+    // Timer + status
+    // ============================================================
+    function startTimer() {
+      started = true;
+      timer = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds / 60), s = seconds % 60;
+        document.getElementById('sc-time').textContent = m + ':' + String(s).padStart(2, '0');
+      }, 1000);
+    }
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+    function setStatus(msg, color) {
+      document.getElementById('status-text').textContent = msg;
+      document.getElementById('status-dot').style.background = color;
+    }
+
+    // ============================================================
+    // New game / difficulty
+    // ============================================================
+    function newGame() {
+      stopTimer();
+      seconds = 0; started = false; puzzleDone = false; mistakes = 0; sel = -1;
+      document.getElementById('sc-time').textContent = '0:00';
+      document.getElementById('sc-mistakes').textContent = '0';
+      document.getElementById('sk-board').classList.remove('solved');
+      document.getElementById('status-dot').style.animation = 'blink 1s infinite';
+      setStatus('Generating a fresh puzzle…', 'var(--accent-yellow)');
+      const board = document.getElementById('sk-board');
+      board.classList.add('loading');
+
+      // defer so the loading state paints before the (synchronous) solve
+      setTimeout(() => {
+        makePuzzle(DIFFS[difficulty]);
+        board.classList.remove('loading');
+        render();
+        setStatus('Pick a cell, then tap a number', 'var(--accent-blue)');
+      }, 30);
+    }
+
+    function setDiff(d) {
+      difficulty = d;
+      ['easy', 'medium', 'hard'].forEach(x =>
+        document.getElementById('diff-' + x).classList.toggle('active', x === d));
+      newGame();
+    }
+
+    // ============================================================
+    // Keyboard
+    // ============================================================
+    document.addEventListener('keydown', e => {
+      if (puzzleDone) return;
+      const k = e.key;
+      if (/^[1-9]$/.test(k)) { inputDigit(parseInt(k)); e.preventDefault(); return; }
+      if (k === '0' || k === 'Backspace' || k === 'Delete') { erase(); e.preventDefault(); return; }
+      if (k === 'n' || k === 'N') { toggleNotes(); return; }
+      if (sel < 0) { if (k.startsWith('Arrow')) { sel = 40; render(); } return; }
+      let r = Math.floor(sel / 9), c = sel % 9;
+      if (k === 'ArrowUp')    { r = (r + 8) % 9; e.preventDefault(); }
+      else if (k === 'ArrowDown')  { r = (r + 1) % 9; e.preventDefault(); }
+      else if (k === 'ArrowLeft')  { c = (c + 8) % 9; e.preventDefault(); }
+      else if (k === 'ArrowRight') { c = (c + 1) % 9; e.preventDefault(); }
+      else return;
+      sel = r * 9 + c;
+      render();
+    });
+
+    // Boot
+    newGame();
+
+    // ── Theme: read from localStorage (set by main site), cycle on click
+    (function(){
+      var root = document.documentElement;
+      var btn  = document.getElementById("theme-toggle");
+      var THEMES = ["dark","light","auto"];
+      var ICONS  = {dark:"☾", light:"☀", auto:"◑"};
+
+      function applyTheme(t){
+        var eff = t==="auto"
+          ? (window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark")
+          : t;
+        root.setAttribute("data-theme", eff);
+        localStorage.setItem("theme", t);
+        btn.textContent = ICONS[t];
+        btn.title = t + " mode";
+      }
+
+      btn.addEventListener("click", function(){
+        var cur = localStorage.getItem("theme")||"dark";
+        var next = THEMES[(THEMES.indexOf(cur)+1)%THEMES.length];
+        applyTheme(next);
+      });
+
+      var cur = localStorage.getItem("theme")||"auto";
+      btn.textContent = ICONS[cur]||"☀";
+      btn.title = cur + " mode";
+
+      window.matchMedia("(prefers-color-scheme:light)").addEventListener("change",function(){
+        if(localStorage.getItem("theme")==="auto") applyTheme("auto");
+      });
+    })();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").then(function (reg) {
+          reg.addEventListener("updatefound", function () {
+            var sw = reg.installing;
+            sw && sw.addEventListener("statechange", function () {
+              if (sw.state === "installed" && navigator.serviceWorker.controller) {
+                sw.postMessage("SKIP_WAITING");
+              }
+            });
+          });
+        }).catch(function (err) {
+          console.warn("Service worker registration failed:", err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

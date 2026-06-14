@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t = localStorage.getItem("theme") || "auto";
+      var eff = t === "auto"
+        ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+        : t;
+      document.documentElement.setAttribute("data-theme", eff);
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference Frame — ARCADE</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* ---- Reference Frame specific ---- */
+    .rf-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 1rem 1.5rem;
+      gap: 0.6rem;
+    }
+    .rf-stage {
+      position: relative;
+      width: min(96vw, 900px);
+      aspect-ratio: 900 / 480;
+      border: 2px solid var(--border);
+      background: #07080d;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+      touch-action: none;
+    }
+    .rf-stage canvas { width: 100%; height: 100%; display: block; }
+
+    .rf-overlay {
+      position: absolute; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.8rem;
+      background: rgba(7,8,13,0.82);
+      z-index: 4;
+      padding: 1rem;
+    }
+    .rf-overlay.show { display: flex; }
+    .rf-overlay h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 6vw, 3rem);
+      letter-spacing: 0.08em;
+      color: var(--accent-blue);
+      text-shadow: var(--glow-blue);
+    }
+    .rf-overlay p { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); max-width: 30rem; line-height: 1.5; }
+    .rf-overlay .eq { color: var(--accent-yellow); }
+    .rf-overlay button {
+      font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.1em;
+      padding: 0.6rem 1.4rem; background: transparent; border: 1px solid var(--accent-blue);
+      color: var(--accent-blue); cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    }
+    .rf-overlay button:hover { background: var(--accent-blue); color: #07080d; }
+
+    .rf-touch {
+      width: min(96vw, 900px);
+      display: flex; justify-content: space-between; gap: 0.5rem;
+    }
+    .rf-touch .pad { display: flex; gap: 0.5rem; }
+    .rf-btn {
+      width: clamp(54px, 14vw, 78px); height: clamp(54px, 14vw, 78px);
+      font-family: var(--font-display); font-size: 1.3rem;
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      border-radius: 50%; cursor: pointer; user-select: none; -webkit-user-select: none;
+      display: flex; align-items: center; justify-content: center; touch-action: none;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .rf-btn:active, .rf-btn.held { background: var(--surface2); border-color: var(--accent-blue); }
+    .rf-btn.boost { border-color: var(--accent-yellow); color: var(--accent-yellow); font-size: 0.7rem; font-family: var(--font-mono); }
+    .rf-btn.boost.held { background: var(--accent-yellow); color: #07080d; }
+    @media (hover: hover) and (pointer: fine) { .rf-touch { display: none; } }
+
+    .rf-help {
+      font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.05em;
+      color: var(--text-dim); text-align: center; line-height: 1.6;
+    }
+    .rf-help b { color: var(--accent-blue); }
+    .rf-help .key { color: var(--text); border: 1px solid var(--border); padding: 0 0.35rem; }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#16181d">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Asad Iqbal">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <div class="game-page">
+    <div class="game-header">
+      <a href="/index.html#games" class="back-btn">← BACK</a>
+      <div class="game-title-bar">
+        <h1 style="color: var(--accent-blue); text-shadow: var(--glow-blue);">REFERENCE FRAME</h1>
+        <p class="subtitle">contract · dilate · arrive</p>
+      </div>
+      <div class="header-right">
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☀</button>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="status-indicator" id="status-dot" style="background: var(--accent-blue);"></span>
+      <span id="status-text">Reach the detector at the end of the accelerator</span>
+    </div>
+
+    <div class="rf-container">
+      <div class="rf-stage">
+        <canvas id="rf-canvas" width="900" height="480"></canvas>
+
+        <div class="rf-overlay show" id="ov-start">
+          <h2>REFERENCE FRAME</h2>
+          <p>You are a particle in a linear accelerator. Move and jump to the detector.
+             Some obstacles are impassable at rest — <span class="eq">boost</span> toward the speed of light to bend the lab around you.</p>
+          <p><span class="eq">Length contraction</span> &nbsp;L = L₀ / γ &nbsp; shrinks chasms &amp; walls.<br>
+             <span class="eq">Time dilation</span> &nbsp;Δt = γ Δt₀ &nbsp; slows laser gates.</p>
+          <button onclick="startGame()">[ ENTER THE BEAMLINE ]</button>
+        </div>
+
+        <div class="rf-overlay" id="ov-level">
+          <h2 id="ov-level-title"></h2>
+          <p id="ov-level-hint"></p>
+          <button onclick="dismissLevelCard()">[ GO ]</button>
+        </div>
+
+        <div class="rf-overlay" id="ov-win">
+          <h2>ACCELERATOR CLEARED</h2>
+          <p id="ov-win-stats"></p>
+          <button onclick="restartAll()">[ RUN IT BACK ]</button>
+        </div>
+      </div>
+
+      <div class="rf-touch">
+        <div class="pad">
+          <div class="rf-btn" id="t-left">◀</div>
+          <div class="rf-btn" id="t-right">▶</div>
+        </div>
+        <div class="pad">
+          <div class="rf-btn boost" id="t-boost">BOOST</div>
+          <div class="rf-btn" id="t-jump">⤒</div>
+        </div>
+      </div>
+
+      <div class="rf-help">
+        <span class="key">←</span> <span class="key">→</span> move &nbsp;·&nbsp;
+        <span class="key">space</span> jump &nbsp;·&nbsp;
+        hold <span class="key">shift</span> to <b>BOOST</b> (accelerate toward c)
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ============================================================
+  // REFERENCE FRAME — relativity puzzle platformer
+  // Camera is pinned to the particle, so boosting contracts the lab
+  // AROUND the player by 1/γ (length contraction is along motion = x).
+  // Vertical (jump) is unaffected. Laser gates run on a lab clock that
+  // advances at dt/γ in the player's frame (time dilation).
+  // ============================================================
+  const canvas = document.getElementById('rf-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 900, H = 480;
+  const ANCHOR_X = 300;          // player's fixed screen x (camera pinned)
+
+  const GRAV = 2000, JUMP_V = 720, MOVE_S = 320;
+  const WP = 24, HP = 24;        // player size (proper size — does not contract)
+  const DEATH_Y = H + 90;
+  const GMAX = 3;                                  // max Lorentz factor when fully boosted
+  const BMAX = Math.sqrt(1 - 1 / (GMAX * GMAX));   // ≈ 0.943 c
+  const RAMP = 0.30;             // seconds to accelerate / decelerate
+  const COYOTE = 0.09, JBUF = 0.10;
+  const STEP = 1 / 120;
+
+  const LEVELS = [
+    {
+      name: 'CALIBRATION', hint: 'Move with ← → and jump with space. Hop the small gaps to the green detector.',
+      start: 90, goalX: 1080,
+      platforms: [ {x:0,y:400,w:300,h:90}, {x:380,y:400,w:300,h:90}, {x:760,y:400,w:420,h:90} ],
+      lasers: [], spikes: []
+    },
+    {
+      name: 'THE CHASM', hint: 'This gap is too wide to jump at rest. Hold BOOST — length contraction (L = L₀/γ) shrinks it to a hop.',
+      start: 90, goalX: 1180,
+      platforms: [ {x:0,y:400,w:360,h:90}, {x:840,y:400,w:460,h:90} ],
+      lasers: [], spikes: []
+    },
+    {
+      name: 'THE GATE', hint: 'The laser cycles too fast to cross at rest. Hold BOOST — time dilation (Δt = γΔt₀) stretches the dark window.',
+      start: 80, goalX: 1080,
+      platforms: [ {x:0,y:400,w:1200,h:90} ],
+      lasers: [ {x:520, y0:150, y1:400, w:64, period:1.6, off:0.18, phase:0} ],
+      spikes: []
+    },
+    {
+      name: 'SYNCHROTRON', hint: 'Chasm, then a gate. Boost for both — then ease off to land cleanly on the pad.',
+      start: 80, goalX: 1480,
+      platforms: [ {x:0,y:400,w:340,h:90}, {x:760,y:400,w:760,h:90} ],
+      lasers: [ {x:1120, y0:150, y1:400, w:60, period:1.5, off:0.18, phase:0.4} ],
+      spikes: []
+    },
+    {
+      name: 'BEAMLINE', hint: 'The full gauntlet: chasm, gate, chasm, gate. Boost to contract the gaps and dilate the lasers — time your runs through the dark.',
+      start: 80, goalX: 2180,
+      platforms: [ {x:0,y:400,w:340,h:90}, {x:760,y:400,w:540,h:90}, {x:1740,y:400,w:520,h:90} ],
+      lasers: [ {x:1000, y0:150, y1:400, w:60, period:1.5, off:0.18, phase:0.2},
+                {x:2000, y0:150, y1:400, w:60, period:1.6, off:0.18, phase:0.55} ],
+      spikes: []
+    }
+  ];
+
+  let levelIdx = 0, level = null;
+  let beta = 0, betaTarget = 0, f = 1;     // f = 1/γ
+  let p = { wx: 0, sy: 0, vy: 0, wvx: 0, grounded: false, coyote: 0, jbuf: 0 };
+  let paused = true, deaths = 0, totalTime = 0;
+  let deathFlash = 0, shiftFlash = 0, trail = [], dead = false;
+  const input = { left: false, right: false, jump: false, boost: false };
+
+  function loadLevel(i) {
+    level = LEVELS[i];
+    p.wx = level.start;
+    p.sy = groundYAt(level.start) - HP;
+    p.vy = 0; p.wvx = 0; p.grounded = true; p.coyote = 0; p.jbuf = 0;
+    beta = 0; betaTarget = 0; f = 1;
+    trail = [];
+    for (const l of level.lasers) l._t = (l.phase || 0) * l.period;
+  }
+
+  function groundYAt(x) {
+    let best = H;
+    for (const pl of level.platforms) if (x >= pl.x && x <= pl.x + pl.w) best = Math.min(best, pl.y);
+    return best;
+  }
+
+  // ============================================================
+  // Update
+  // ============================================================
+  function update(dt) {
+    if (paused || dead) return;
+    totalTime += dt;
+
+    // accelerate / decelerate (Lorentz ramp)
+    betaTarget = input.boost ? BMAX : 0;
+    const drate = BMAX / RAMP * dt;
+    if (beta < betaTarget) beta = Math.min(betaTarget, beta + drate);
+    else if (beta > betaTarget) beta = Math.max(betaTarget, beta - drate);
+    f = Math.sqrt(1 - beta * beta);                 // 1/γ
+    if (input.boost && beta > 0.02) shiftFlash = 1;
+
+    // horizontal (world units); on-screen speed kept ~constant at MOVE_S
+    const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    const maxWorld = MOVE_S / f;
+    if (dir !== 0) p.wvx = dir * maxWorld;
+    else if (p.grounded) p.wvx = 0;                 // keep momentum while airborne
+    p.wx += p.wvx * dt;
+    p.wx = Math.max(0, Math.min(p.wx, level.goalX + 40));
+
+    // jump (buffer + coyote)
+    p.jbuf -= dt; p.coyote -= dt;
+    if (input.jump) { p.jbuf = JBUF; input.jump = false; }
+    if (p.jbuf > 0 && p.coyote > 0) { p.vy = -JUMP_V; p.grounded = false; p.coyote = 0; p.jbuf = 0; }
+
+    // gravity
+    p.vy += GRAV * dt;
+    const prevBottom = p.sy + HP;
+    p.sy += p.vy * dt;
+
+    // land on platform tops (vertical un-contracted; x overlap uses f)
+    const pL = ANCHOR_X - WP / 2, pR = ANCHOR_X + WP / 2;
+    let grounded = false;
+    for (const pl of level.platforms) {
+      const sx = ANCHOR_X + (pl.x - p.wx) * f, sw = pl.w * f;
+      if (pR <= sx || pL >= sx + sw) continue;
+      if (p.vy >= 0 && prevBottom <= pl.y + 0.5 && p.sy + HP >= pl.y) {
+        p.sy = pl.y - HP; p.vy = 0; grounded = true;
+      }
+    }
+    if (!grounded && p.vy >= 0) {
+      for (const pl of level.platforms) {
+        const sx = ANCHOR_X + (pl.x - p.wx) * f, sw = pl.w * f;
+        if (pR <= sx || pL >= sx + sw) continue;
+        if (Math.abs((p.sy + HP) - pl.y) < 2) { p.sy = pl.y - HP; grounded = true; break; }
+      }
+    }
+    if (grounded) p.coyote = COYOTE;
+    p.grounded = grounded;
+
+    // lasers (lab clock dilated: phase advances at dt * f)
+    for (const l of level.lasers) {
+      l._t = (l._t + dt * f) % l.period;
+      l._on = l._t >= l.off;                          // safe during the first `off` seconds of the cycle
+      if (l._on) {
+        const sx = ANCHOR_X + (l.x - p.wx) * f, sw = Math.max(2, l.w * f);
+        if (!(pR <= sx || pL >= sx + sw) && p.sy + HP > l.y0 && p.sy < l.y1) die();
+      }
+    }
+
+    // spikes (contract with the world)
+    for (const s of level.spikes) {
+      const sx = ANCHOR_X + (s.x - p.wx) * f, sw = 26 * f, sh = 26;
+      if (!(pR <= sx + 4 || pL >= sx + sw - 4) && p.sy + HP > s.y - sh && p.sy + HP <= s.y + 6) die();
+    }
+
+    if (p.sy > DEATH_Y) die();
+    if (p.wx >= level.goalX) { nextLevel(); return; }
+
+    trail.push({ x: ANCHOR_X, y: p.sy + HP / 2, a: 1 });
+    if (trail.length > 18) trail.shift();
+    for (const t of trail) t.a *= 0.86;
+
+    if (deathFlash > 0) deathFlash = Math.max(0, deathFlash - dt * 3);
+    if (shiftFlash > 0) shiftFlash = Math.max(0, shiftFlash - dt * 4);
+  }
+
+  function die() {
+    if (dead) return;
+    dead = true; deaths++; deathFlash = 1;
+    setStatus('Frame collapsed — respawning…', 'var(--accent-red)');
+    setTimeout(() => { loadLevel(levelIdx); dead = false; setStatus(level.hint, 'var(--accent-blue)'); }, 450);
+  }
+
+  function nextLevel() {
+    if (levelIdx + 1 >= LEVELS.length) { winGame(); return; }
+    levelIdx++;
+    paused = true;
+    loadLevel(levelIdx);
+    showLevelCard();
+  }
+
+  // ============================================================
+  // Render
+  // ============================================================
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    const gamma = 1 / f, boostAmt = beta / BMAX;
+
+    ctx.fillStyle = '#07080d'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(10,132,255,0.12)'; ctx.lineWidth = 1;
+    const scroll = (ANCHOR_X - p.wx * f);
+    for (let gx = (scroll % 60 + 60) % 60; gx < W; gx += 60) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(10,132,255,0.25)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, 90); ctx.lineTo(W, 90); ctx.stroke();
+
+    if (boostAmt > 0.05) {
+      ctx.strokeStyle = `rgba(120,200,255,${0.10 + 0.25 * boostAmt})`;
+      ctx.lineWidth = 2;
+      for (let k = 0; k < 7; k++) {
+        const y = 40 + k * 60 + (performance.now() * 0.3 * boostAmt % 60);
+        const len = 60 + 200 * boostAmt;
+        ctx.beginPath(); ctx.moveTo(W, y); ctx.lineTo(W - len, y); ctx.stroke();
+      }
+    }
+
+    for (const pl of level.platforms) {
+      const sx = ANCHOR_X + (pl.x - p.wx) * f, sw = pl.w * f;
+      if (sx + sw < -20 || sx > W + 20) continue;
+      ctx.fillStyle = '#11141f'; ctx.fillRect(sx, pl.y, sw, pl.h);
+      ctx.fillStyle = 'rgba(10,132,255,0.9)'; ctx.fillRect(sx, pl.y, sw, 3);
+      ctx.fillStyle = 'rgba(10,132,255,0.12)'; ctx.fillRect(sx, pl.y + 3, sw, 6);
+    }
+
+    for (const s of level.spikes) {
+      const sx = ANCHOR_X + (s.x - p.wx) * f, sw = 26 * f;
+      if (sx + sw < -20 || sx > W + 20) continue;
+      ctx.fillStyle = 'rgba(255,45,85,0.92)';
+      ctx.beginPath();
+      ctx.moveTo(sx, s.y); ctx.lineTo(sx + sw / 2, s.y - 26); ctx.lineTo(sx + sw, s.y);
+      ctx.closePath(); ctx.fill();
+    }
+
+    for (const l of level.lasers) {
+      const sx = ANCHOR_X + (l.x - p.wx) * f, sw = Math.max(3, l.w * f);
+      if (sx + sw < -20 || sx > W + 20) continue;
+      ctx.fillStyle = '#2a2030';
+      ctx.fillRect(sx - 2, l.y0 - 10, sw + 4, 10);
+      ctx.fillRect(sx - 2, l.y1, sw + 4, 10);
+      if (l._on) {
+        const g = ctx.createLinearGradient(sx, 0, sx + sw, 0);
+        g.addColorStop(0, 'rgba(255,45,85,0.15)');
+        g.addColorStop(0.5, 'rgba(255,45,85,0.95)');
+        g.addColorStop(1, 'rgba(255,45,85,0.15)');
+        ctx.fillStyle = g; ctx.fillRect(sx, l.y0, sw, l.y1 - l.y0);
+      } else {
+        const charge = l._t / l.off;
+        ctx.fillStyle = `rgba(255,45,85,${0.06 + 0.10 * charge})`;
+        ctx.fillRect(sx + sw / 2 - 1, l.y0, 2, l.y1 - l.y0);
+      }
+    }
+
+    const gx = ANCHOR_X + (level.goalX - p.wx) * f;
+    if (gx > -40 && gx < W + 40) {
+      const gy = groundYAt(level.goalX);
+      const pulse = 18 + 4 * Math.sin(performance.now() / 200);
+      ctx.strokeStyle = 'rgba(48,209,88,0.9)'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(gx, gy - 40, pulse, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = 'rgba(48,209,88,0.18)';
+      ctx.beginPath(); ctx.arc(gx, gy - 40, pulse, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(48,209,88,0.8)'; ctx.fillRect(gx - 2, gy - 40, 4, 40);
+    }
+
+    for (const t of trail) {
+      ctx.fillStyle = `rgba(120,200,255,${t.a * 0.5})`;
+      ctx.beginPath(); ctx.arc(t.x, t.y, WP / 2 * t.a, 0, Math.PI * 2); ctx.fill();
+    }
+    const pcx = ANCHOR_X, pcy = p.sy + HP / 2;
+    const glow = ctx.createRadialGradient(pcx, pcy, 2, pcx, pcy, WP);
+    const core = boostAmt > 0.5 ? '#bcdcff' : '#7ec8ff';
+    glow.addColorStop(0, '#ffffff'); glow.addColorStop(0.4, core); glow.addColorStop(1, 'rgba(120,200,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(pcx, pcy, WP, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(pcx, pcy, WP / 2 - 3, 0, Math.PI * 2); ctx.fill();
+
+    if (boostAmt > 0.02) {
+      const v = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.75);
+      v.addColorStop(0, 'rgba(10,40,90,0)');
+      v.addColorStop(1, `rgba(10,60,140,${0.35 * boostAmt})`);
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    }
+    if (deathFlash > 0) { ctx.fillStyle = `rgba(255,45,85,${0.4 * deathFlash})`; ctx.fillRect(0,0,W,H); }
+
+    drawHUD(gamma, boostAmt);
+  }
+
+  function drawHUD(gamma, boostAmt) {
+    ctx.font = '700 12px "Space Mono", monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = boostAmt > 0.05 ? '#ffd60a' : '#6e6e8a';
+    ctx.fillText(boostAmt > 0.05 ? 'FRAME: BOOSTED' : 'FRAME: REST', 16, 14);
+    ctx.fillStyle = '#7ec8ff';
+    ctx.fillText('γ = ' + gamma.toFixed(2) + '    β = ' + beta.toFixed(3) + ' c', 16, 32);
+    ctx.fillStyle = '#6e6e8a';
+    ctx.fillText('L = L₀ / ' + gamma.toFixed(2), 16, 50);
+
+    const mx = W - 180, my = 16, mw = 160, mh = 10;
+    ctx.strokeStyle = 'rgba(110,110,138,0.5)'; ctx.strokeRect(mx, my, mw, mh);
+    const grad = ctx.createLinearGradient(mx, 0, mx + mw, 0);
+    grad.addColorStop(0, '#0a84ff'); grad.addColorStop(1, '#ffd60a');
+    ctx.fillStyle = grad; ctx.fillRect(mx + 1, my + 1, (mw - 2) * (beta / BMAX), mh - 2);
+    ctx.fillStyle = '#6e6e8a'; ctx.fillText('β → c', mx + mw - 36, my + 16);
+
+    ctx.fillStyle = '#6e6e8a';
+    ctx.fillText('LEVEL ' + (levelIdx + 1) + '/' + LEVELS.length + ' · ' + level.name, 16, H - 24);
+  }
+
+  // ============================================================
+  // Loop
+  // ============================================================
+  let acc = 0, lastT = 0;
+  function frame(now) {
+    if (!lastT) lastT = now;
+    let dt = (now - lastT) / 1000; lastT = now;
+    if (dt > 0.1) dt = 0.1;
+    acc += dt;
+    while (acc >= STEP) { update(STEP); acc -= STEP; }
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ============================================================
+  // Flow / UI
+  // ============================================================
+  function setStatus(msg, color) {
+    document.getElementById('status-text').textContent = msg;
+    document.getElementById('status-dot').style.background = color;
+  }
+  function showLevelCard() {
+    document.getElementById('ov-level-title').textContent = 'LEVEL ' + (levelIdx + 1) + ' — ' + level.name;
+    document.getElementById('ov-level-hint').innerHTML = level.hint;
+    document.getElementById('ov-level').classList.add('show');
+  }
+  function dismissLevelCard() {
+    document.getElementById('ov-level').classList.remove('show');
+    paused = false;
+    setStatus(level.hint, 'var(--accent-blue)');
+  }
+  function startGame() {
+    document.getElementById('ov-start').classList.remove('show');
+    deaths = 0; totalTime = 0; levelIdx = 0; dead = false;
+    loadLevel(0); showLevelCard();
+  }
+  function winGame() {
+    paused = true;
+    document.getElementById('ov-win-stats').innerHTML =
+      'Time: ' + totalTime.toFixed(1) + 's &nbsp;·&nbsp; Frame collapses: ' + deaths;
+    document.getElementById('ov-win').classList.add('show');
+    setStatus('Accelerator cleared!', 'var(--accent-green)');
+  }
+  function restartAll() {
+    document.getElementById('ov-win').classList.remove('show');
+    deaths = 0; totalTime = 0; levelIdx = 0; dead = false;
+    loadLevel(0); showLevelCard();
+  }
+
+  // ============================================================
+  // Input
+  // ============================================================
+  const keymap = {
+    ArrowLeft: 'left', KeyA: 'left',
+    ArrowRight: 'right', KeyD: 'right',
+    ArrowUp: 'jump', KeyW: 'jump', Space: 'jump',
+    ShiftLeft: 'boost', ShiftRight: 'boost', KeyJ: 'boost'
+  };
+  addEventListener('keydown', e => {
+    const a = keymap[e.code]; if (!a) return; e.preventDefault();
+    if (a === 'jump') input.jump = true; else input[a] = true;
+  });
+  addEventListener('keyup', e => {
+    const a = keymap[e.code]; if (!a) return; e.preventDefault();
+    if (a !== 'jump') input[a] = false;
+  });
+
+  function bindTouch(id, action) {
+    const el = document.getElementById(id);
+    const on = e => { e.preventDefault(); el.classList.add('held'); if (action === 'jump') input.jump = true; else input[action] = true; };
+    const off = e => { e.preventDefault(); el.classList.remove('held'); if (action !== 'jump') input[action] = false; };
+    el.addEventListener('pointerdown', on);
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+    el.addEventListener('pointerleave', off);
+  }
+  bindTouch('t-left', 'left');
+  bindTouch('t-right', 'right');
+  bindTouch('t-jump', 'jump');
+  bindTouch('t-boost', 'boost');
+
+  loadLevel(0);
+  requestAnimationFrame(frame);
+
+  // ── Theme ──
+  (function(){
+    var root = document.documentElement;
+    var btn  = document.getElementById("theme-toggle");
+    var THEMES = ["dark","light","auto"];
+    var ICONS  = {dark:"☾", light:"☀", auto:"◑"};
+    function applyTheme(t){
+      var eff = t==="auto" ? (window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark") : t;
+      root.setAttribute("data-theme", eff);
+      localStorage.setItem("theme", t);
+      btn.textContent = ICONS[t]; btn.title = t + " mode";
+    }
+    btn.addEventListener("click", function(){
+      var cur = localStorage.getItem("theme")||"dark";
+      applyTheme(THEMES[(THEMES.indexOf(cur)+1)%THEMES.length]);
+    });
+    var cur = localStorage.getItem("theme")||"auto";
+    btn.textContent = ICONS[cur]||"☀"; btn.title = cur + " mode";
+    window.matchMedia("(prefers-color-scheme:light)").addEventListener("change",function(){
+      if(localStorage.getItem("theme")==="auto") applyTheme("auto");
+    });
+  })();
+
+  window.startGame = startGame;
+  window.dismissLevelCard = dismissLevelCard;
+  window.restartAll = restartAll;
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").then(function (reg) {
+          reg.addEventListener("updatefound", function () {
+            var sw = reg.installing;
+            sw && sw.addEventListener("statechange", function () {
+              if (sw.state === "installed" && navigator.serviceWorker.controller) sw.postMessage("SKIP_WAITING");
+            });
+          });
+        }).catch(function (err) { console.warn("Service worker registration failed:", err); });
+      });
+    }
+  </script>
+</body>
+</html>
