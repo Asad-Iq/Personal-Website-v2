@@ -11,6 +11,13 @@
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+function imageUrl(site, img) {
+  if (!img) return undefined;
+  if (/^https?:\/\//i.test(img)) return [img];               // already a full URL
+  var clean = String(img).replace(/^\//, "").replace(/^Store\//i, ""); // drop leading "/" and "Store/"
+  return [site + "/Store/" + clean];
+}
+
 module.exports = async function handler(req, res) {
   // CORS — the store is served from a different origin (GitHub Pages)
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -63,7 +70,7 @@ module.exports = async function handler(req, res) {
         product_data: {
           name: p.name,
           description: p.description ? String(p.description).slice(0, 300) : undefined,
-          images: p.image ? [SITE_URL + "/Store/" + p.image] : undefined
+          images: imageUrl(SITE_URL, p.image)
         }
       }
     });
