@@ -2162,3 +2162,74 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 #gc-refframe::before { background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.15), transparent 70%); }
 #gc-refframe:hover { border-color:#0a84ff; box-shadow:0 0 20px rgba(10,132,255,0.4); }
 #gc-refframe .game-play-btn { color:#0a84ff; }
+/* ═══════════════ KASIA: EPIC UI UPGRADE ═══════════════ */
+
+/* 1. The Trigger Button: Breathing Red Glow */
+#ai-trigger-btn {
+  box-shadow: 0 0 0 0 rgba(194, 0, 0, 0.7);
+  animation: kasiaPulse 2.5s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+#ai-trigger-btn:hover {
+  animation: none; /* Stops the pulse when hovering to favor the scale effect */
+}
+@keyframes kasiaPulse {
+  to { box-shadow: 0 0 0 25px rgba(194, 0, 0, 0); }
+}
+
+/* 2. The Chat Window: Deeper Glass & Inner Edge Highlight */
+#ai-chat-window {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+[data-theme="light"] #ai-chat-window {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 3. Message Masking: Smooth Fade at the Top */
+#ai-messages {
+  /* Creates a gradient mask so messages smoothly dissolve into the header when scrolling */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
+}
+
+/* 4. The Bubbles: Tactile 3D Depth */
+.ai-msg-bot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+[data-theme="light"] .ai-msg-bot {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.ai-msg-user {
+  /* Replaces the flat red with a rich gradient and an inner top-light reflection */
+  background: linear-gradient(135deg, var(--red), #8a0000);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(194, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+/* 5. The Header: Animated Sparkle & Sleek Divider */
+.ai-header-info i {
+  animation: kasiaSpin 4s linear infinite;
+  display: inline-block;
+}
+@keyframes kasiaSpin {
+  100% { transform: rotate(360deg); }
+}
+.ai-header {
+  border-bottom: none;
+  position: relative;
+}
+.ai-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  /* A glowing red line that fades out at the edges */
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity: 0.6;
+}
