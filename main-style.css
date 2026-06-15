@@ -2223,15 +2223,24 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .ai-header {
   border-bottom: none;
   position: relative;
+  overflow: hidden; /* Keeps the glowing beam contained inside the header */
 }
+
 .ai-header::after {
   content: '';
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  /* A glowing red line that fades out at the edges */
+  bottom: 0; left: 0; 
+  width: 40%; /* Narrows the line so it acts like a scanner beam */
+  height: 2px; /* Slightly thicker so the movement is pronounced */
   background: linear-gradient(90deg, transparent, var(--red), transparent);
-  opacity: 0.6;
+  opacity: 0.8;
+  animation: knightRider 1.2s ease-in-out infinite alternate;
+}
+
+/* The Knight Rider sweep animation */
+@keyframes knightRider {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(150%); }
 }
 /* ═══════════════ KASIA: AVATAR & UI POLISH ═══════════════ */
 
