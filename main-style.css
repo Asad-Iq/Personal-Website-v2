@@ -2233,3 +2233,78 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
   background: linear-gradient(90deg, transparent, var(--red), transparent);
   opacity: 0.6;
 }
+/* ═══════════════ KASIA: AVATAR & UI POLISH ═══════════════ */
+
+/* The Avatar Frame */
+.ai-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(194, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.ai-avatar img, 
+.ai-avatar svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Input Area Polish: Focus Glow */
+.ai-input-area {
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* When the user is typing, gently highlight the entire bottom bar */
+.ai-input-area:focus-within {
+  background: rgba(20, 20, 20, 0.95);
+  border-top-color: var(--red);
+  box-shadow: 0 -4px 20px rgba(194, 0, 0, 0.05);
+}
+
+/* Send Button Hover Polish */
+#ai-send-btn {
+  transform: translateY(0);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#ai-send-btn:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.1);
+  text-shadow: 0 0 8px rgba(194, 0, 0, 0.6);
+}
+/* ═══════════════ KASIA: SCIENTIFIC AVATAR ═══════════════ */
+
+/* Transform the rings into a 3D atomic structure */
+.orbit-1 { transform: rotate(30deg); transform-origin: center; }
+.orbit-2 { transform: rotate(90deg); transform-origin: center; }
+.orbit-3 { transform: rotate(150deg); transform-origin: center; }
+
+/* The slow, infinite rotation */
+.kasia-atom {
+  width: 70%;  /* Keeps it slightly padded within the red circle */
+  height: 70%;
+  animation: atomSpin 12s linear infinite;
+}
+
+@keyframes atomSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Optional: Make the atom spin faster when Kasia is "thinking" 
+   (You can add this class via JS during the fetch request if you want) */
+.kasia-atom.processing {
+  animation: atomSpin 2s linear infinite;
+}
+
+/* Add a subtle glow to the core */
+.kasia-atom circle {
+  filter: drop-shadow(0 0 4px var(--red));
+}

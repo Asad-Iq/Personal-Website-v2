@@ -62,9 +62,18 @@
   <div id="ai-chat-window" class="ai-closed">
     <div class="ai-header">
       <div class="ai-header-info">
-        <i class="fas fa-sparkles" style="color: var(--red);"></i>
-        <span>Kasia</span>
-      </div>
+  <div class="ai-avatar">
+    <svg class="kasia-atom" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Central Core -->
+      <circle cx="50" cy="50" r="6" fill="var(--red)"/>
+      <!-- Orbital Rings -->
+      <ellipse class="orbit orbit-1" cx="50" cy="50" rx="40" ry="12" stroke="var(--text-dim)" stroke-width="2"/>
+      <ellipse class="orbit orbit-2" cx="50" cy="50" rx="40" ry="12" stroke="var(--text-dim)" stroke-width="2"/>
+      <ellipse class="orbit orbit-3" cx="50" cy="50" rx="40" ry="12" stroke="var(--text-dim)" stroke-width="2"/>
+    </svg>
+  </div>
+  <span>Kasia</span>
+</div>
       <button class="ai-clear-btn" onclick="clearAIChat()" aria-label="Clear memory"><i class="fas fa-rotate-right"></i></button>
       <button class="ai-close-btn" onclick="toggleAIChat()" aria-label="Close chat"><i class="fas fa-xmark"></i></button>
     </div>
