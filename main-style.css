@@ -2264,11 +2264,18 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 
 /* When the user is typing, gently highlight the entire bottom bar */
 .ai-input-area:focus-within {
-  background: rgba(20, 20, 20, 0.95);
+  background: var(--bg3); /* Uses your theme-aware variable instead of hardcoded black */
   border-top-color: var(--red);
-  box-shadow: 0 -4px 20px rgba(194, 0, 0, 0.05);
+  box-shadow: 0 -4px 20px rgba(194, 0, 0, 0.08);
 }
 
+/* Guarantee text and placeholder legibility */
+#ai-user-input {
+  color: var(--text) !important;
+}
+#ai-user-input::placeholder {
+  color: var(--text-dim) !important;
+}
 /* Send Button Hover Polish */
 #ai-send-btn {
   transform: translateY(0);
