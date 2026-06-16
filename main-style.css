@@ -2324,3 +2324,74 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 .kasia-atom circle {
   filter: drop-shadow(0 0 4px var(--red));
 }
+/* ============================================================
+   DOWNLOADS (AI.Workspace Desktop)
+   ============================================================ */
+.desktop-downloads {
+  display: block;
+}
+.desktop-only {
+  display: inline-block;
+}
+
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 900px;
+}
+
+.dl-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  border-radius: 4px;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.dl-card:hover {
+  border-color: var(--red);
+  transform: translateY(-4px);
+  box-shadow: var(--red-glow);
+}
+
+.dl-card i {
+  font-size: 3.5rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  transition: color var(--transition);
+}
+
+.dl-card:hover i {
+  color: var(--red);
+}
+
+.dl-card h3 {
+  font-family: var(--font-disp);
+  font-size: 2rem;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.dl-card p {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+
+/* Hide entirely on mobile */
+@media (max-width: 768px) {
+  .desktop-downloads {
+    display: none !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+}

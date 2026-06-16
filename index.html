@@ -123,6 +123,7 @@
     <a href="#writing">writing</a>
     <a href="#games">games</a>
     <a href="#contact">contact</a>
+    <a href="#downloads" class="desktop-only">tools</a>
   </nav>
 
   <div class="nav-socials">
@@ -765,7 +766,27 @@
     </div>
   </div>
 </section>
+<!-- ═══════════════ DOWNLOADS (Desktop Only) ═══════════════ -->
+<section id="downloads" class="section desktop-downloads section-dark">
+  <div class="section-label">06 / tools</div>
+  <h2 class="section-title">AI.Workspace</h2>
+  <p class="section-intro">Download my custom scientific workstation locally. Offline support, live sensor telemetry, and a full CAS engine included.</p>
 
+  <div class="download-grid">
+    <div class="dl-card reveal">
+      <i class="fab fa-apple"></i>
+      <h3>Mac OS</h3>
+      <p>macOS 10.15 or later</p>
+      <a href="downloads/AI.Workspace-mac.dmg" class="btn-primary" download>Download for Mac</a>
+    </div>
+    <div class="dl-card reveal">
+      <i class="fab fa-windows"></i>
+      <h3>Windows</h3>
+      <p>Windows 10 or later</p>
+      <a href="downloads/AI.Workspace-win.exe" class="btn-primary" download>Download for PC</a>
+    </div>
+  </div>
+</section>
 <!-- ═══════════════ FOOTER ═══════════════ -->
 <footer class="footer">
   <div class="footer-inner">
@@ -891,7 +912,7 @@ document.querySelectorAll(".exp-btn").forEach(btn => {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); } });
 }, { threshold: 0.1 });
-document.querySelectorAll(".section, .photo-card, .writing-card, .game-card-link, .stat, .full-carousel-wrapper").forEach(el => {
+document.querySelectorAll(".section, .photo-card, .writing-card, .game-card-link, .stat, .full-carousel-wrapper, .dl-card").forEach(el => {
   el.classList.add("reveal");
   observer.observe(el);
 });
