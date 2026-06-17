@@ -2,7 +2,7 @@
  * Bump CACHE_VERSION whenever you change precached files (CSS/HTML/icons)
  * so returning visitors get the update.
  */
-const CACHE_VERSION = "v15.5.0";
+const CACHE_VERSION = "v15.5.1";
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME = `runtime-${CACHE_VERSION}`;
 
@@ -70,6 +70,14 @@ self.addEventListener("fetch", (event) => {
 
   // Live data — always go to the network, never cache.
   if (NETWORK_ONLY_HOSTS.includes(url.hostname)) return;
+
+  // Binary downloads (APK / installers / archives): never route through the
+  // service worker. Buffering a large file here can stall and break the
+  // download — especially inside an installed PWA. Let the browser stream it
+  // straight from the network.
+  if (/\.(apk|aab|dmg|exe|msi|pkg|deb|appimage|zip|tar\.gz|tgz|7z|rar|iso)$/i.test(url.pathname)) {
+    return;
+  }
 
   // Page navigations: network-first, fall back to cache, then offline page.
   if (request.mode === "navigate") {
