@@ -2395,3 +2395,22 @@ li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
     display: none !important;
   }
 }
+/* ============================================================
+   APP DOWNLOAD (.Workspace Android — Mobile Only)
+   ============================================================ */
+.mobile-downloads { display: none; }
+@media (max-width: 768px) {
+  .mobile-downloads { display: block; }
+}
+.download-grid-single {
+  grid-template-columns: 1fr;
+  max-width: 460px;
+}
+.apk-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin-top: 1.75rem;
+}
