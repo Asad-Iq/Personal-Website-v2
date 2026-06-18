@@ -38,17 +38,25 @@
   <meta name="twitter:description" content="Physics Student · Gunner · Gallivanter · Petrolhead.">
   <meta name="twitter:image" content="https://asadiqbal.site/og-image.png">
   <link rel="stylesheet" href="main-style.css">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-    emailjs.init({
-      publicKey: "444iXREWTMyGI15lX",
+    // emailjs is now deferred, so initialise it once the page (and that
+    // deferred script) have finished loading. Deferred scripts run before
+    // DOMContentLoaded, so emailjs is guaranteed to be defined here.
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.emailjs) {
+        emailjs.init({
+          publicKey: "444iXREWTMyGI15lX",
+        });
+      }
     });
   </script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#16181d">
 
@@ -63,8 +71,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Asad Iqbal">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 </head>
 <body>
 <div id="ai-companion-wrapper">
@@ -235,7 +243,7 @@
           </div>
           <div class="about-image-col">
             <div class="about-img-frame">
-              <img src="Snapchat-2028678647.webp" alt="Asad Iqbal" class="photo-img">
+              <img src="Snapchat-2028678647.webp" alt="Asad Iqbal" class="photo-img" loading="lazy" decoding="async">
             </div>
             <div class="about-stats">
               <div class="stat">
@@ -2629,7 +2637,7 @@ async function requestCompletion() {
      img: a real URL shows a photo; leave "" for the labelled placeholder    */
   const BOARD = [
     { id:"me", type:"polaroid", x:34,  y:30,  w:178, rot:-5, pin:"#3a86c8",
-      img:"\images\brive-university-of-leeds-top-banner.webp", icon:"fa-graduation-cap", cap:"Leeds, '28", slot:"portrait",
+      img:"brive-university-of-leeds-top-banner.webp", icon:"fa-graduation-cap", cap:"Leeds, '28", slot:"portrait",
       title:"BSc Physics, University of Leeds", detail:"Where the laws of the universe stopped being abstract. First class is the only acceptable exit." },
 
     { id:"SOLIDARITY", type:"note", x:295, y:22, w:150, rot:4, pin:"#c8b43a", tone:"",
@@ -2650,15 +2658,15 @@ async function requestCompletion() {
       title:"Infinite curiosity", detail:"The one constant through coding, cars, travel, books and the piano \u2014 a refusal to stop learning." },
 
     { id:"car", type:"polaroid", x:790, y:210, w:180, rot:4, pin:"#3aa856",
-      img:"\images\2012-mb-c63-amg-coupe_head.webp", icon:"fa-car-side", cap:"the next car", slot:"car",
+      img:"2012-mb-c63-amg-coupe_head.webp", icon:"fa-car-side", cap:"the next car", slot:"car",
       title:"Mercedes-Benz C-Class", detail:"I've always got my eyes on something different. I always tell myself I'll keep this one forever. I never do." },
 
     { id:"travel", type:"poster", x:40,  y:452, w:178, rot:3, pin:"#c8b43a",
-      tag:"gallivant", h:"NEXT STAMP", sub:"destination: ?",
-      title:"Chase stories across borders", detail:"Lost in a new place for longer than planned. The passport is the to-do list." },
+      tag:"gallivant", h:"Jordan", sub:"the desert, the stone, the camps",
+      title:"Jordan, eyes open", detail:"Wadi Rum under Bedouin stars, a day lost in Petra, and time in the camps \u2014 Za'atari and the Palestinian ones \u2014 to see what the postcards leave out." },
 
     { id:"piano", type:"photo", x:786, y:438, w:196, rot:-4, pin:"#8e44ad",
-      img:"\images\maxresdefault.webp", icon:"fa-music", cap:"experience", slot:"piano",
+      img:"maxresdefault.webp", icon:"fa-music", cap:"experience", slot:"piano",
       title:"Finish Experience, Ludovico Einaudi", detail:"When I'm not tinkering I'm at the piano \u2014 slowly, badly, then suddenly not badly." },
 
     { id:"code", type:"card", x:560, y:215, w:194, rot:3, pin:"#3aa856",
