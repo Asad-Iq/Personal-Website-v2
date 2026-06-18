@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     emailjs.init({
@@ -387,6 +387,30 @@
         </div>
       </div>
 
+      <div class="a-slide">
+        <div class="interactive-full">
+          <div class="a-slide-header">
+            <h3>Vision Board</h3>
+          </div>
+          <div class="a-slide-content vb-content">
+            <div class="vb-stage">
+              <div class="vb-cork" id="vb-cork">
+                <div class="vb-canvas" id="vb-canvas">
+                  <svg class="vb-strings" id="vb-strings" viewBox="0 0 1000 620" preserveAspectRatio="none"></svg>
+                  <div class="vb-backdrop" id="vb-backdrop"></div>
+                  <!-- items injected here by JS -->
+                </div>
+                <div class="vb-readout" id="vb-readout">
+                  <div class="vb-r-k" id="vb-r-k"></div>
+                  <div class="vb-r-t" id="vb-r-t"></div>
+                  <div class="vb-r-d" id="vb-r-d"></div>
+                </div>
+                <div class="vb-hint">click a pin to inspect</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 </section>
 
@@ -1176,6 +1200,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (currentIndex === 4 && !window.moviesRendered) {
       renderMovies();
       window.moviesRendered = true;
+    }
+
+    // Re-fit the vision board strings when it (slide 5) opens
+    if (currentIndex === 5 && window.initBoard) {
+      setTimeout(window.initBoard, 50);
     }
   };
 
@@ -2587,6 +2616,217 @@ async function requestCompletion() {
     btn.hidden = true;
     deferredPrompt = null;
   });
+})();
+</script>
+<!-- ═══════════════ VISION BOARD ═══════════════ -->
+<script>
+(function(){
+  "use strict";
+
+  /* ── Edit your board here ──
+     x,y = top-left in a 1000×620 design space · w = width · rot = degrees
+     pin = pin-head colour · type: polaroid | photo | note | card | poster
+     img: a real URL shows a photo; leave "" for the labelled placeholder    */
+  const BOARD = [
+    { id:"me", type:"polaroid", x:34,  y:30,  w:178, rot:-5, pin:"#3a86c8",
+      img:"\images\brive-university-of-leeds-top-banner.webp", icon:"fa-graduation-cap", cap:"Leeds, '28", slot:"portrait",
+      title:"BSc Physics, University of Leeds", detail:"Where the laws of the universe stopped being abstract. First class is the only acceptable exit." },
+
+    { id:"SOLIDARITY", type:"note", x:295, y:22, w:150, rot:4, pin:"#c8b43a", tone:"",
+      text:"Free Palestine.",
+      html:'<br><svg viewBox="0 0 60 40" width="30" style="border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4)"><rect width="60" height="40" fill="#fff"/><rect width="60" height="13.34" fill="#000"/><rect y="26.66" width="60" height="13.34" fill="#007a3d"/><path d="M0 0 25 20 0 40Z" fill="#ce1126"/></svg>',
+      title:"Free Palestine", detail:"Standing in unwavering solidarity. Peace, justice, and freedom." },
+
+    { id:"phys", type:"card", x:545, y:34, w:206, rot:-3, pin:"#3a86c8",
+      kicker:"field notes", eq:"\u222e E\u00b7dA = Q/\u03b5\u2080", scrawl:"how everything works",
+      title:"Understand it all", detail:"From Gauss's law to a seized brake caliper \u2014 the same itch to know exactly why something behaves the way it does." },
+
+    { id:"arsenal", type:"note", x:846, y:36, w:132, rot:6, pin:"#c0392b", tone:"red",
+      text:"COYG \u2764",
+      title:"North London is red", detail:"2026/27 WILL bring Arsenal European glory." },
+
+    { id:"infinity", type:"poster", x:34, y:282, w:196, rot:-2, big:true, pin:"#c0392b",
+      tag:"the thesis", h:"\u221e", sub:"stay curious",
+      title:"Infinite curiosity", detail:"The one constant through coding, cars, travel, books and the piano \u2014 a refusal to stop learning." },
+
+    { id:"car", type:"polaroid", x:790, y:210, w:180, rot:4, pin:"#3aa856",
+      img:"\images\2012-mb-c63-amg-coupe_head.webp", icon:"fa-car-side", cap:"the next car", slot:"car",
+      title:"Mercedes-Benz C-Class", detail:"I've always got my eyes on something different. I always tell myself I'll keep this one forever. I never do." },
+
+    { id:"travel", type:"poster", x:40,  y:452, w:178, rot:3, pin:"#c8b43a",
+      tag:"gallivant", h:"NEXT STAMP", sub:"destination: ?",
+      title:"Chase stories across borders", detail:"Lost in a new place for longer than planned. The passport is the to-do list." },
+
+    { id:"piano", type:"photo", x:786, y:438, w:196, rot:-4, pin:"#8e44ad",
+      img:"\images\maxresdefault.webp", icon:"fa-music", cap:"experience", slot:"piano",
+      title:"Finish Experience, Ludovico Einaudi", detail:"When I'm not tinkering I'm at the piano \u2014 slowly, badly, then suddenly not badly." },
+
+    { id:"code", type:"card", x:560, y:215, w:194, rot:3, pin:"#3aa856",
+      kicker:"build log", eq:"// ship it", scrawl:"3+ yrs & counting",
+      title:"Keep building", detail:"Some weeks it's a coding project on the workbench. Solve hard problems with creative solutions." },
+
+    { id:"read", type:"note", x:300, y:168, w:138, rot:-5, pin:"#3a86c8", tone:"blue",
+      text:"Finish:\nMalcolm X",
+      title:"Always reading", detail:"Buried in a good book between everything else. Currently: The Autobiography of Malcolm X." },
+      { id:"solidarity", type:"page", x:350, y:312, w:300, rot:-3, pin:"#007a3d",
+  heading:"Solidarity",
+  intro:"Solidarity means confronting the hardest truths without looking away. This note stands as an urgent call to dismantle:",
+  bullets:[
+    "The systemic oppression of settler colonialism and apartheid.",
+    "The ongoing genocide against the Palestinian people.",
+    "The horrific human rights violations of arbitrary detention and sexual violence in prisons.",
+  ],
+  close:"Silence is complicity. Free Palestine.",
+  title:"Solidarity", detail:"In support of the Palestinian people." },
+  ];
+
+  /* pin-to-pin connections for the red string */
+  const LINKS = [
+    ["me","SOLIDARITY"], ["SOLIDARITY","phys"], ["phys","arsenal"],
+    ["me","infinity"], ["infinity","read"], ["infinity","travel"],
+    ["read","SOLIDARITY"], ["read","solidarity"], ["solidarity","travel"],
+    ["solidarity","code"], ["code","phys"], ["code","car"],
+    ["car","arsenal"], ["car","piano"],
+  ];
+
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  function picBox(it){
+    if(it.img) return `<div class="vb-pic" style="background-image:url('${esc(it.img)}')"></div>`;
+    return `<div class="vb-pic vb-empty"><i class="fas ${esc(it.icon||"fa-image")}"></i>`+
+           `<span class="vb-slot">${esc(it.slot||it.cap||"photo")}</span>`+
+           `<span class="vb-add">add photo</span></div>`;
+  }
+
+  function itemInner(it){
+    switch(it.type){
+      case "polaroid": return `<div class="vb-polaroid">${picBox(it)}<div class="vb-cap">${esc(it.cap||"")}</div></div>`;
+      case "photo":    return `<div class="vb-photo">${picBox(it)}${it.cap?`<div class="vb-cap">${esc(it.cap)}</div>`:""}</div>`;
+      case "note": return `<div class="vb-note ${it.tone?("t-"+esc(it.tone)):""}">${esc(it.text||"").replace(/\n/g,"<br>")}${it.html||""}</div>`;
+      case "card":     return `<div class="vb-card"><div class="vb-kicker">${esc(it.kicker||"")}</div><div class="vb-rule"></div><div class="vb-eq">${esc(it.eq||"")}</div><div class="vb-scrawl">${esc(it.scrawl||"")}</div></div>`;
+      case "poster":   return `<div class="vb-poster ${it.big?"big":""}"><div class="vb-tag">${esc(it.tag||"")}</div><h4>${esc(it.h||"")}</h4><div class="vb-sub">${esc(it.sub||"")}</div></div>`;
+      default:         return "";
+      case "page": return `<div class="vb-page">
+  ${it.heading?`<h4>${esc(it.heading)}</h4>`:""}
+  ${it.intro?`<p>${esc(it.intro)}</p>`:""}
+  ${(it.bullets||[]).length?`<ul>${it.bullets.map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}
+  ${it.close?`<p class="sign">${esc(it.close)}</p>`:""}
+</div>`;
+    }
+  }
+
+  const cork   = document.getElementById("vb-cork");
+  const canvas = document.getElementById("vb-canvas");
+  const strings= document.getElementById("vb-strings");
+  const backdrop=document.getElementById("vb-backdrop");
+  const rK=document.getElementById("vb-r-k"), rT=document.getElementById("vb-r-t"), rD=document.getElementById("vb-r-d");
+  if(!cork) return;
+
+  const byId = {};
+  let built = false, focusedEl = null;
+
+  function build(){
+    if(built) return; built = true;
+
+    BOARD.forEach(it=>{
+      const el = document.createElement("div");
+      el.className = "vb-item";
+      el.dataset.id = it.id;
+      el.style.left = it.x+"px";
+      el.style.top  = it.y+"px";
+      el.style.width= it.w+"px";
+      el.style.setProperty("--rot", (it.rot||0)+"deg");
+      el.style.setProperty("--pin", it.pin||"#d33");
+      el.tabIndex = 0;
+      el.setAttribute("role","button");
+      el.setAttribute("aria-label", it.title || it.id);
+      el.innerHTML = itemInner(it);
+      el.addEventListener("click", ()=>toggleFocus(el));
+      el.addEventListener("keydown", e=>{
+        if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleFocus(el); }
+        if(e.key==="Escape") closeFocus();
+      });
+      canvas.appendChild(el);
+      byId[it.id] = { it, el };
+    });
+
+    drawStrings();
+    backdrop.addEventListener("click", closeFocus);
+    document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeFocus(); });
+  }
+
+  /* pin anchor in design coords (top-centre of the item) */
+  function anchor(rec){ const it = rec.it; return { x: it.x + it.w/2, y: it.y + 4 }; }
+
+  function drawStrings(){
+    let d = "";
+    LINKS.forEach(([a,b])=>{
+      const A = byId[a], B = byId[b];
+      if(!A||!B) return;
+      const p1 = anchor(A), p2 = anchor(B);
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      const dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+      const sag = Math.min(46, dist*0.10);
+      d += `M${p1.x},${p1.y} Q${mx},${my+sag} ${p2.x},${p2.y} `;
+    });
+    strings.innerHTML =
+      `<path d="${d}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="3.4" transform="translate(1.2,2.4)"/>`+
+      `<path d="${d}" fill="none" stroke="#b51717" stroke-width="2.4" stroke-linecap="round"/>`+
+      `<path d="${d}" fill="none" stroke="#e23b3b" stroke-width="1" stroke-linecap="round" opacity=".7"/>`;
+  }
+
+  /* scale the 1000×620 canvas to fit the cork (transform only — cheap) */
+  function fit(){
+    const r = cork.getBoundingClientRect();
+    if(!r.width || !r.height) return;
+    const k = Math.min(r.width/1000, r.height/620) * 0.97;
+    canvas.style.setProperty("--vb-k", k.toFixed(4));
+  }
+
+  function toggleFocus(el){ (el===focusedEl) ? closeFocus() : openFocus(el); }
+
+  function openFocus(el){
+    const rec = byId[el.dataset.id]; if(!rec) return;
+    if(focusedEl && focusedEl!==el){ focusedEl.classList.remove("is-focused"); focusedEl.style.transform=""; }
+    focusedEl = el;
+    cork.classList.add("is-focused");
+    el.classList.add("is-focused");
+    el.style.willChange = "transform";
+
+    const cx = el.offsetLeft + el.offsetWidth/2;
+    const cy = el.offsetTop  + el.offsetHeight/2;
+    const dx = 500 - cx, dy = 310 - cy;
+    const s  = Math.max(1.5, Math.min(2.7, 340/el.offsetWidth));
+    el.style.transform = `translate(${dx}px,${dy}px) rotate(0deg) scale(${s})`;
+
+    const it = rec.it;
+    rK.textContent = it.id;
+    rT.textContent = it.title || "";
+    rD.textContent = it.detail || "";
+  }
+
+  function closeFocus(){
+    if(!focusedEl) return;
+    cork.classList.remove("is-focused");
+    focusedEl.classList.remove("is-focused");
+    focusedEl.style.transform = "";
+    const prev = focusedEl;
+    setTimeout(()=>{ if(prev) prev.style.willChange=""; }, 480);
+    focusedEl = null;
+  }
+
+  function initBoard(){
+    build();
+    requestAnimationFrame(fit);
+    setTimeout(fit, 60);
+  }
+  window.initBoard = initBoard;
+
+  let rt;
+  window.addEventListener("resize", ()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(focusedEl) closeFocus(); fit(); }, 120); });
+
+  if(document.readyState!=="loading") initBoard();
+  else document.addEventListener("DOMContentLoaded", initBoard);
 })();
 </script>
 </body>
