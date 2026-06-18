@@ -1,0 +1,6 @@
+# robots.txt for asadiqbal.site
+
+User-agent: *
+Allow: /
+
+Sitemap: https://asadiqbal.site/sitemap.xml

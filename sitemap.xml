@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Home -->
+  <url>
+    <loc>https://asadiqbal.site/</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Photography portfolio -->
+  <url>
+    <loc>https://asadiqbal.site/portfolio.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Store -->
+  <url>
+    <loc>https://asadiqbal.site/Store/index.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Writing / Field Notes -->
+  <url>
+    <loc>https://asadiqbal.site/Articles/article-website.html</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Articles/article-thoughts-modern-relationships.html</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Games / Arcade -->
+  <url>
+    <loc>https://asadiqbal.site/Games/connect4.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/noughts-crosses.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/hangman.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/battleships.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/wordsearch.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/sudoku.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/chess.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://asadiqbal.site/Games/reference-frame.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
