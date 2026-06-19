@@ -2877,46 +2877,50 @@ async function requestCompletion() {
   // `img` is the path to the certificate image shown in the viewer.
   // Drop the image files in a /Certs/ folder (or change the paths).
   // `issued` and `id` are optional — leave them out if not needed.
+  // Each cert has two independent links:
+  //   img    → the .webp shown in the lightbox when you click "view certificate"
+  //   verify → the URL the "open original" button opens (verification page).
+  //            Leave verify as "" and the "open original" button hides itself.
   const CERTS = [
     {
       label: "Bloomberg",
       certs: [
-        { name: "Bloomberg Market Concepts", issued: "2026", img: "Certs/bloomberg-bmc.webp" },
-        { name: "Bloomberg Finance Fundamentals", issued: "2026", img: "Certs/bloomberg-esg.webp" },
-        {name: "Environmental Social Governance", issued: "2026", img:""},
-        {name:"Bloomberg Spreadsheet Analysis", issued: "2026", img:""}
+        { name: "Bloomberg Market Concepts", issued: "2026", img: "certificate_of_completion(1).webp", verify: "https://portal.bloombergforeducation.com/certificates/NJy12HjGLtCYf3VUX6miL7iS" },
+        { name: "Bloomberg Finance Fundamentals", issued: "soon", img: "in-progress.webp", verify: "" },
+        { name: "Environmental Social Governance", issued: "soon", img: "in-progress.webp", verify: "" },
+        { name: "Bloomberg Spreadsheet Analysis", issued: "soon", img: "in-progress.webp", verify: "" }
       ]
     },
     {
       label: "Google",
       certs: [
-        { name: "Google Professional ML Engineer",              issued: "2026", img: "Certs/google-data-analytics.webp" },
+        { name: "Google Professional ML Engineer", issued: "soon", img: "in-progress.webp", verify: "" },
       ]
     },
     {
       label: "Microsoft",
       certs: [
-        { name: "Azure Fundamentals (AI-900)", issued: "2026", id: "AI-900", img: "Certs/ms-az900.webp" },
+        { name: "Azure Fundamentals (AI-900)", issued: "soon", id: "AI-900", img: "in-progress.webp", verify: "" },
       ]
     },
     {
       label: "Amazon",
       certs: [
-        { name: "AWS Certified Cloud Practitioner", issued: "2026", img: "Certs/aws-ccp.webp" },
-        { name: "AWS Certified AI Practitioner", issued: "2026", img: "Certs/aws-ccp.webp" },
-        { name: "AWS Certified Machine Learning Engineer - Associate", issued: "2026", img: "Certs/aws-ccp.webp" },
+        { name: "AWS Certified Cloud Practitioner", issued: "soon", img: "in-progress.webp", verify: "" },
+        { name: "AWS Certified AI Practitioner", issued: "soon", img: "in-progress.webp", verify: "" },
+        { name: "AWS Certified Machine Learning Engineer - Associate", issued: "soon", img: "in-progress.webp", verify: "" },
       ]
     },
     {
       label: "Stanford",
       certs: [
-        { name: "Machine Learning Specialization", issued: "2026", img: "Certs/aws-ccp.webp" },
+        { name: "Machine Learning Specialization", issued: "soon", img: "in-progress.webp", verify: "" },
       ]
     },
     {
       label: "DeepLearning.AI",
       certs: [
-        { name: "Deep Learning Specialization", issued: "2026", img: "Certs/aws-ccp.webp" },
+        { name: "Deep Learning Specialization", issued: "soon", img: "in-progress.webp", verify: "" },
       ]
     },
   ];
@@ -3010,7 +3014,17 @@ async function requestCompletion() {
     lbImg.style.display = "block";
     lbImg.alt = c.name + " certificate";
     lbImg.src = c.img || "";
-    lbOpen.href = c.img || "#";
+
+    // "open original" opens the verification link, not the image.
+    // Hide the button entirely when no verification link is set.
+    if (c.verify) {
+      lbOpen.href = c.verify;
+      lbOpen.hidden = false;
+    } else {
+      lbOpen.removeAttribute("href");
+      lbOpen.hidden = true;
+    }
+
     if (lbPath) lbPath.textContent = c.img || "(no image set)";
 
     const single = org.certs.length <= 1;
