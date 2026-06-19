@@ -507,7 +507,39 @@
       </div>
     </div>
   </div>
+
+  <!-- ─── Certifications ─── -->
+  <div class="cert-block">
+    <h2 class="section-title cert-title">Certifications</h2>
+    <p class="cert-sub">Credentials &amp; courses, grouped by issuer.</p>
+
+    <div class="cert-orgs" id="cert-orgs" role="tablist" aria-label="Certificate issuers"></div>
+    <div class="cert-panels" id="cert-panels"></div>
+  </div>
 </section>
+
+<!-- Certificate lightbox / viewer -->
+<div class="cert-lightbox" id="cert-lightbox" role="dialog" aria-modal="true" aria-label="Certificate viewer" aria-hidden="true">
+  <div class="cert-lb-backdrop" data-lb-close></div>
+  <button class="cert-lb-close" id="cert-lb-close" aria-label="Close"><i class="fas fa-xmark"></i></button>
+  <button class="cert-lb-nav cert-lb-prev" id="cert-lb-prev" aria-label="Previous certificate"><i class="fas fa-chevron-left"></i></button>
+  <button class="cert-lb-nav cert-lb-next" id="cert-lb-next" aria-label="Next certificate"><i class="fas fa-chevron-right"></i></button>
+  <figure class="cert-lb-figure">
+    <div class="cert-lb-imgwrap">
+      <img id="cert-lb-img" class="cert-lb-img" alt="" decoding="async">
+      <div class="cert-lb-missing" id="cert-lb-missing">
+        <i class="fas fa-image"></i>
+        Certificate image not found.<br>
+        Add the file at <code id="cert-lb-path"></code>
+      </div>
+    </div>
+    <figcaption class="cert-lb-caption">
+      <span class="cert-lb-title" id="cert-lb-title"></span>
+      <span class="cert-lb-meta" id="cert-lb-meta"></span>
+      <a class="cert-lb-open" id="cert-lb-open" href="#" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> open original</a>
+    </figcaption>
+  </figure>
+</div>
 
 <!-- ═══════════════ PHOTOGRAPHY ═══════════════ -->
 <section id="photography" class="section">
@@ -2835,6 +2867,198 @@ async function requestCompletion() {
 
   if(document.readyState!=="loading") initBoard();
   else document.addEventListener("DOMContentLoaded", initBoard);
+})();
+</script>
+<script>
+/* ════════════════ CERTIFICATIONS ════════════════ */
+(function () {
+  // ── EDIT HERE ──────────────────────────────────────────────
+  // Your issuers and their certificates. Add / remove freely.
+  // `img` is the path to the certificate image shown in the viewer.
+  // Drop the image files in a /Certs/ folder (or change the paths).
+  // `issued` and `id` are optional — leave them out if not needed.
+  const CERTS = [
+    {
+      label: "Bloomberg",
+      certs: [
+        { name: "Bloomberg Market Concepts", issued: "2026", img: "Certs/bloomberg-bmc.webp" },
+        { name: "Bloomberg Finance Fundamentals", issued: "2026", img: "Certs/bloomberg-esg.webp" },
+        {name: "Environmental Social Governance", issued: "2026", img:""},
+        {name:"Bloomberg Spreadsheet Analysis", issued: "2026", img:""}
+      ]
+    },
+    {
+      label: "Google",
+      certs: [
+        { name: "Google Professional ML Engineer",              issued: "2026", img: "Certs/google-data-analytics.webp" },
+      ]
+    },
+    {
+      label: "Microsoft",
+      certs: [
+        { name: "Azure Fundamentals (AI-900)", issued: "2026", id: "AI-900", img: "Certs/ms-az900.webp" },
+      ]
+    },
+    {
+      label: "Amazon",
+      certs: [
+        { name: "AWS Certified Cloud Practitioner", issued: "2026", img: "Certs/aws-ccp.webp" },
+        { name: "AWS Certified AI Practitioner", issued: "2026", img: "Certs/aws-ccp.webp" },
+        { name: "AWS Certified Machine Learning Engineer - Associate", issued: "2026", img: "Certs/aws-ccp.webp" },
+      ]
+    },
+    {
+      label: "Stanford",
+      certs: [
+        { name: "Machine Learning Specialization", issued: "2026", img: "Certs/aws-ccp.webp" },
+      ]
+    },
+    {
+      label: "DeepLearning.AI",
+      certs: [
+        { name: "Deep Learning Specialization", issued: "2026", img: "Certs/aws-ccp.webp" },
+      ]
+    },
+  ];
+  // ───────────────────────────────────────────────────────────
+
+  const orgsEl   = document.getElementById("cert-orgs");
+  const panelsEl = document.getElementById("cert-panels");
+  if (!orgsEl || !panelsEl) return;
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // Build issuer buttons + panels
+  CERTS.forEach((org, i) => {
+    const btn = document.createElement("button");
+    btn.className = "cert-org-btn" + (i === 0 ? " active" : "");
+    btn.dataset.idx = i;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", i === 0 ? "true" : "false");
+    btn.innerHTML = esc(org.label) + ' <span class="cert-org-count">' + org.certs.length + "</span>";
+    orgsEl.appendChild(btn);
+
+    const panel = document.createElement("div");
+    panel.className = "cert-panel" + (i === 0 ? " active" : "");
+    panel.id = "cert-panel-" + i;
+
+    const list = document.createElement("div");
+    list.className = "cert-list";
+
+    org.certs.forEach((c, j) => {
+      const row = document.createElement("div");
+      row.className = "cert-row";
+      let meta = "<span>" + esc(org.label) + "</span>";
+      if (c.issued) meta += '<span class="cert-dot">&middot;</span><span>Issued ' + esc(c.issued) + "</span>";
+      if (c.id)     meta += '<span class="cert-dot">&middot;</span><span>ID ' + esc(c.id) + "</span>";
+      row.innerHTML =
+        '<div class="cert-info">' +
+          '<div class="cert-name">' + esc(c.name) + "</div>" +
+          '<div class="cert-meta">' + meta + "</div>" +
+        "</div>" +
+        '<button class="cert-view-btn" data-org="' + i + '" data-cert="' + j + '">' +
+          '<i class="fas fa-eye"></i> view certificate' +
+        "</button>";
+      list.appendChild(row);
+    });
+
+    panel.appendChild(list);
+    panelsEl.appendChild(panel);
+  });
+
+  // Issuer tab switching
+  orgsEl.addEventListener("click", e => {
+    const btn = e.target.closest(".cert-org-btn");
+    if (!btn) return;
+    orgsEl.querySelectorAll(".cert-org-btn").forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
+    panelsEl.querySelectorAll(".cert-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
+    document.getElementById("cert-panel-" + btn.dataset.idx).classList.add("active");
+  });
+
+  // ── Lightbox ──
+  const lb        = document.getElementById("cert-lightbox");
+  const lbImg     = document.getElementById("cert-lb-img");
+  const lbTitle   = document.getElementById("cert-lb-title");
+  const lbMeta    = document.getElementById("cert-lb-meta");
+  const lbOpen    = document.getElementById("cert-lb-open");
+  const lbMissing = document.getElementById("cert-lb-missing");
+  const lbPath    = document.getElementById("cert-lb-path");
+  const lbClose   = document.getElementById("cert-lb-close");
+  const lbPrev    = document.getElementById("cert-lb-prev");
+  const lbNext    = document.getElementById("cert-lb-next");
+
+  let curOrg = 0, curCert = 0, lastFocused = null;
+
+  function render(oi, ci) {
+    const org = CERTS[oi]; if (!org) return;
+    const c = org.certs[ci]; if (!c) return;
+    curOrg = oi; curCert = ci;
+
+    lbTitle.textContent = c.name;
+    let meta = org.label;
+    if (c.issued) meta += " \u00b7 Issued " + c.issued;
+    if (c.id)     meta += " \u00b7 ID " + c.id;
+    lbMeta.textContent = meta;
+
+    lbMissing.style.display = "none";
+    lbImg.style.display = "block";
+    lbImg.alt = c.name + " certificate";
+    lbImg.src = c.img || "";
+    lbOpen.href = c.img || "#";
+    if (lbPath) lbPath.textContent = c.img || "(no image set)";
+
+    const single = org.certs.length <= 1;
+    lbPrev.disabled = single;
+    lbNext.disabled = single;
+  }
+
+  lbImg.addEventListener("error", () => {
+    lbImg.style.display = "none";
+    lbMissing.style.display = "block";
+  });
+
+  function open(oi, ci) {
+    lastFocused = document.activeElement;
+    render(oi, ci);
+    lb.classList.add("open");
+    lb.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    lbClose.focus();
+  }
+  function close() {
+    lb.classList.remove("open");
+    lb.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if (lastFocused) lastFocused.focus();
+  }
+  function step(dir) {
+    const n = CERTS[curOrg].certs.length;
+    render(curOrg, (curCert + dir + n) % n);
+  }
+
+  panelsEl.addEventListener("click", e => {
+    const btn = e.target.closest(".cert-view-btn");
+    if (!btn) return;
+    open(+btn.dataset.org, +btn.dataset.cert);
+  });
+
+  lbPrev.addEventListener("click", () => step(-1));
+  lbNext.addEventListener("click", () => step(1));
+  lbClose.addEventListener("click", close);
+  lb.querySelectorAll("[data-lb-close]").forEach(el => el.addEventListener("click", close));
+
+  document.addEventListener("keydown", e => {
+    if (!lb.classList.contains("open")) return;
+    if (e.key === "Escape") close();
+    else if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "ArrowRight") step(1);
+  });
 })();
 </script>
 </body>
