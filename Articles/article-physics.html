@@ -12,37 +12,189 @@
 </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Physics Project — Asad Iqbal</title>
+  <title>How I Built PhysicsLab — Asad Iqbal</title>
+  <meta name="description" content="Five undergraduate physics experiments run entirely off a phone's sensors — built in native Android with Kotlin.">
   <link rel="stylesheet" href="/main-style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
-    .article-wrap { max-width: 720px; margin: 0 auto; padding: calc(var(--nav-h) + 4rem) 2rem 6rem; }
-    .article-back { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; color: var(--text-dim); display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 2.5rem; transition: color var(--transition); }
+    .article-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 4rem) 2rem 6rem;
+    }
+    .article-back {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+      transition: color var(--transition);
+    }
     .article-back:hover { color: var(--red); }
-    .article-tag { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: block; }
-    .article-title { font-family: var(--font-disp); font-size: clamp(2.5rem, 6vw, 4.5rem); letter-spacing: 0.03em; line-height: 1.05; margin-bottom: 1.25rem; color: var(--text); }
-    .article-meta { display: flex; gap: 1.5rem; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .article-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .article-title {
+      font-family: var(--font-disp);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      letter-spacing: 0.03em;
+      line-height: 1.05;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+    .article-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
     .article-meta i { margin-right: 0.4rem; color: var(--red); }
-    .article-body { font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.9; color: var(--text-mid); }
-    .article-body h2 { font-family: var(--font-disp); font-size: 2rem; letter-spacing: 0.05em; color: var(--text); margin: 2.5rem 0 1rem; }
+    .article-body {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      line-height: 1.9;
+      color: var(--text-mid);
+    }
+    .article-body h2 {
+      font-family: var(--font-disp);
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin: 2.5rem 0 1rem;
+    }
     .article-body p { margin-bottom: 1.4rem; }
     .article-body em { color: var(--text); font-style: italic; }
     .article-body strong { color: var(--text); font-weight: 600; }
-    .article-body ul { margin: 0 0 1.4rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
+    .article-body ul {
+      margin: 0 0 1.4rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
     .article-body ul li { color: var(--text-mid); }
-    .article-divider { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
-    .article-footer-nav { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-    .article-footer-nav a { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--text-dim); transition: color var(--transition); }
+    .article-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+    .article-footer-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    .article-footer-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      transition: color var(--transition);
+    }
     .article-footer-nav a:hover { color: var(--red); }
-    .article-placeholder { background: var(--surface); border: 1px dashed var(--border); border-left: 3px solid var(--red); padding: 1.25rem 1.5rem; margin: 1.5rem 0; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--text-dim); line-height: 1.7; }
+    /* placeholder note styling */
+    .article-placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-left: 3px solid var(--red);
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
 
     /* ── Comments (giscus) ── */
     .comments-section { margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
     .comments-heading { font-family: var(--font-disp); font-size: 1.7rem; letter-spacing: 0.05em; color: var(--text); margin-bottom: 1.5rem; }
     .giscus, .giscus-frame { width: 100%; }
+
+    /* ── Page-local: code blocks ── */
+    .article-body pre {
+      background: var(--surface);
+      border-left: 3px solid var(--red);
+      border-radius: 0 6px 6px 0;
+      padding: 1.1rem 1.3rem;
+      margin: 1.6rem 0;
+      overflow-x: auto;
+    }
+    .article-body pre code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: var(--text-mid);
+      background: none;
+      padding: 0;
+      letter-spacing: 0;
+    }
+    .article-body code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+    }
+
+    /* ── Page-local: numbered experiment list ── */
+    .experiments {
+      list-style: none;
+      counter-reset: exp;
+      margin: 1.75rem 0 !important;
+      padding: 0;
+      display: block !important;
+    }
+    .experiments li {
+      counter-increment: exp;
+      position: relative;
+      padding: 1rem 0 1rem 3.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .experiments li:last-child { border-bottom: 1px solid var(--border); }
+    .experiments li::before {
+      content: counter(exp, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 1.15rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--red);
+    }
+    .experiments .name {
+      display: block;
+      font-family: var(--font-serif);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .experiments .how {
+      display: block;
+      font-size: 0.95em;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-top: 0.15rem;
+    }
   </style>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
   <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#16181d">
 
@@ -61,7 +213,9 @@
 <body>
 
 <header class="navbar scrolled" id="navbar">
-  <div class="nav-logo"><a href="/index.html" style="color:inherit">Asad Iqbal<span class="nav-dot">.</span></a></div>
+  <div class="nav-logo">
+    <a href="/index.html" style="color:inherit">Asad Iqbal<span class="nav-dot">.</span></a>
+  </div>
   <nav class="nav-links">
   <a href="/index.html#home">home</a>
   <a href="/index.html#about">about</a>
@@ -71,13 +225,15 @@
   <a href="/index.html#contact">contact</a>
 </nav>
   <div style="display:flex;gap:0.75rem;align-items:center;">
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"><i class="fas fa-sun" id="theme-icon"></i></button>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <i class="fas fa-sun" id="theme-icon"></i>
+    </button>
     <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
   </div>
 </header>
 <div class="mobile-nav" id="mobile-nav">
-  <a href="/index.html#home" onclick="closeMobileNav()">home</a>
-  <a href="/index.html#about" onclick="closeMobileNav()">about</a>
+  <a href="/index.html#home"    onclick="closeMobileNav()">home</a>
+  <a href="/index.html#about"   onclick="closeMobileNav()">about</a>
   <a href="/index.html#photography" onclick="closeMobileNav()">photography</a>
   <a href="/index.html#writing" onclick="closeMobileNav()">writing</a>
   <a href="/index.html#games" onclick="closeMobileNav()">games</a>
@@ -87,51 +243,104 @@
 <div class="article-wrap">
   <a href="/index.html#writing" class="article-back">← all posts</a>
 
-  <span class="article-tag">Field Notes: Coming Soon</span>
-  <h1 class="article-title">[Project Title Here]</h1>
+  <span class="article-tag">Field Notes: A Lab Bench in Your Pocket</span>
+  <h1 class="article-title">How I Built PhysicsLab</h1>
 
   <div class="article-meta">
-    <span><i class="fas fa-calendar-alt"></i>[Coming Soon]</span>
-    <span><i class="fas fa-clock"></i>7 min read</span>
+    <span><i class="fas fa-calendar-alt"></i>19/06/2026</span>
+    <span><i class="fas fa-clock"></i>6 min read</span>
     <span><i class="fas fa-user"></i>Asad Iqbal</span>
   </div>
 
   <div class="article-body">
-    <div class="article-placeholder">
-      ✏️ Working on this article! Check back soon for insights from my latest project, where many incidents occurred.
-    </div>
 
     <p>
-      <em>Coming soon...</em>
+      <em>PhysicsLab turns the phone in your pocket into a lab bench.</em> Five experiments — all of them lifted straight out of the first-year undergraduate lab — run entirely off the sensors already sitting inside the handset. No probes, no DAQ box, no bench kit. You choose how many data points to record, the app builds the table as you go, and it plots the graph you'd actually reach for during analysis.
     </p>
 
-    <h2>The problem</h2>
     <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      The pitch is simple: you shouldn't need a lab to check whether the universe is behaving.
     </p>
 
-    <h2>The approach</h2>
+    <h2>The five experiments</h2>
     <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Each one is a standard lab exercise reduced to a phone and a bit of geometry. The job is the same every time — record clean data, then watch a known law fall out of it.
+    </p>
+
+    <ol class="experiments">
+      <li>
+        <span class="name">Vibration &amp; resonance</span>
+        <span class="how">Rest the phone firmly on a vibrating body. The accelerometer reads the oscillation, and a frequency sweep finds the resonant peak.</span>
+      </li>
+      <li>
+        <span class="name">Inverse-square law</span>
+        <span class="how">Point the front of the phone at a bulb in a dark room and step back through measured distances. The light sensor should fall off as 1/r².</span>
+      </li>
+      <li>
+        <span class="name">Elevator kinematics</span>
+        <span class="how">Hold the phone steady and ride a lift. Integrate the accelerometer trace to recover velocity, acceleration, and how far you've travelled.</span>
+      </li>
+      <li>
+        <span class="name">Speed of sound</span>
+        <span class="how">Stand a measured distance from a big flat wall and give one sharp clap. Time the gap to the echo and you've got the speed of sound in air.</span>
+      </li>
+      <li>
+        <span class="name">Coupled oscillators</span>
+        <span class="how">Hang the phone and a similar mass as two pendulums from one taut string. Set the other bob swinging while the phone is still, and watch the energy slosh back and forth between them.</span>
+      </li>
+    </ol>
+
+    <h2>Why a phone is a half-decent lab</h2>
+    <p>
+      The accelerometer, light sensor and microphone in a modern handset are good enough to recover real numbers — not lab-grade, but real. That's the whole point. The reading on the screen isn't borrowed from a textbook; it came out of <em>your</em> data, on hardware you already own, which is a far more convincing way to believe a law than being told it.
+    </p>
+
+    <h2>Where the physics bites</h2>
+    <p>
+      The honest answer to "how hard was it?" is that the code was rarely the problem — the physics of cheap sensors was. Three places fought back, and the interesting work was in how I handled (or deliberately didn't hide) each one.
+    </p>
+    <p>
+      <strong>Elevator drift.</strong> The lift experiment integrates acceleration once to get velocity and twice to get height. The trouble is that any tiny constant bias in the accelerometer integrates into a velocity that quietly drifts, then integrates <em>again</em> into a height that runs away entirely — by the time the lift stops, the app still thinks you're moving. The fix is a zero-velocity correction: the ride begins and ends at rest, so I pin velocity to zero at both endpoints and drag the accumulated drift back out of the height estimate. It's a cheap trick borrowed from inertial navigation, and it's the only reason the elevator numbers are usable at all.
+    </p>
+    <p>
+      <strong>The inverse-square intercept will never be perfect — and I left it that way.</strong> The 1/r² plot comes out clean, but the intercept never lands exactly where theory says it should. That's not a bug to chase. A real bulb isn't a point source, the light sensor has an angular response (it doesn't weight every incoming angle equally), and there's a non-zero ambient offset baked into every reading. So the line is honest about the trend while the constant term quietly carries all the sins of real hardware. Forcing it onto the theoretical intercept would mean fudging the data, which defeats the point of measuring anything.
+    </p>
+    <p>
+      <strong>The FFT is hand-rolled.</strong> The resonance and speed-of-sound experiments both need frequency and timing analysis, and rather than pull in a DSP library I wrote the transform by hand against the platform sensor APIs.
+    </p>
+
+    <pre><code>// radix-2 Cooley–Tukey, in-place
+for (stage in 1..log2n) {
+    val span = 1 shl stage
+    val half = span shr 1
+    // butterflies across each block...
+}</code></pre>
+
+    <p>
+      Which sounds hardcore but is really just a textbook radix-2 — the win wasn't cleverness, it was that doing it myself meant I understood exactly what the windowing and the bin resolution were doing to my peaks. When the peak <em>is</em> the answer, that's not a detail you want hidden behind someone else's library.
+    </p>
+
+    <h2>The stack</h2>
+    <p>
+      Kotlin, native Android, built in Android Studio, talking to the platform sensor APIs directly with the hand-rolled FFT and no DSP dependency. A few constraints are worth knowing, because they shaped everything:
     </p>
     <ul>
-      <li>[Step or component 1]</li>
-      <li>[Step or component 2]</li>
-      <li>[Step or component 3]</li>
+      <li> The emulator doesn't fake real sensor data, so every test had to run on a physical device. Slower loop, no alternative.</li>
+      <li> It's hardware-dependent — not every phone ships every sensor — so the app degrades gracefully: if the sensor an experiment needs isn't there, that experiment bows out instead of crashing.</li>
+      <li> The sample rate isn't guaranteed. Android gives you a <em>requested</em> rate, not a contract, so the timing has to survive jitter.</li>
+      <li> The accuracy ceilings are physical, not software. No amount of clean code fixes a sensor that's only good to a few percent, or a bulb that isn't a point source. Past a point, the honest move is to report the limit, not paper over it.</li>
     </ul>
 
-    <h2>Results</h2>
+    <h2>What I'd do differently</h2>
     <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p>
-
-    <h2>What I took away</h2>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Add raw CSV export. Right now the app keeps the underlying arrays to itself and only hands you the table and the on-device plot. I want to pull the raw samples straight into NumPy and do the analysis <em>properly</em> — fits, residuals, real uncertainties — instead of trusting a phone-screen line of best fit. That's the first thing going into the next version.
     </p>
 
     <hr class="article-divider">
-    <p><em>Written as part of my ongoing interest in applied physics and sustainable energy research.</em></p>
+
+    <p>
+      The whole thing is a bet that the best lab equipment most students own is already in their pocket. Source is on <a href="https://github.com/asad-iq" target="_blank" rel="noopener">GitHub</a> if you want to poke around.
+    </p>
   </div>
 
   <section class="comments-section" id="comments">
@@ -156,21 +365,22 @@
 
   <div class="article-footer-nav">
     <a href="article-website.html">← how i built this website</a>
-    <a href="/index.html#writing">back to all posts →</a>
+    <a href="article-thoughts-modern-relationships.html">next: thoughts on modern relationships →</a>
   </div>
 </div>
 
 <footer class="footer">
   <div class="footer-inner">
     <span class="footer-name">Asad Iqbal<span class="nav-dot">.</span></span>
-    <span class="footer-copy">© <span id="year"></span></span>
+    <span class="footer-copy">© <span id="year"></span> — Built &amp; designed by Asad Iqbal</span>
   </div>
 </footer>
 
 <script>
 document.getElementById("year").textContent = new Date().getFullYear();
-const root=document.documentElement,themeIcon=document.getElementById("theme-icon");
-function applyTheme(t){root.setAttribute("data-theme",t);localStorage.setItem("theme",t);themeIcon.className=t==="light"?"fas fa-moon":"fas fa-sun";}
+const root = document.documentElement;
+const themeIcon = document.getElementById("theme-icon");
+function applyTheme(t) { root.setAttribute("data-theme",t); localStorage.setItem("theme",t); themeIcon.className = t==="light"?"fas fa-moon":"fas fa-sun"; }
 applyTheme(localStorage.getItem("theme")||(window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));
 document.getElementById("theme-toggle").addEventListener("click",()=>applyTheme(root.getAttribute("data-theme")==="light"?"dark":"light"));
 document.getElementById("hamburger").addEventListener("click",()=>{document.getElementById("hamburger").classList.toggle("open");document.getElementById("mobile-nav").classList.toggle("open");});
